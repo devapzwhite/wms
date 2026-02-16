@@ -1,0 +1,8 @@
+import 'package:flutter/material.dart';
+
+class MenuItem {
+  final IconData icon;
+  final String title;
+  final String route;
+  MenuItem({required this.icon, required this.title, required this.route});
+}
