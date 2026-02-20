@@ -4,11 +4,25 @@ import 'package:wms/domain/entities/entities.dart';
 
 class HomeMenuCard extends StatelessWidget {
   final MenuItem menuItem;
-  const HomeMenuCard({super.key, required this.menuItem});
+  final double? height;
+  final double? width;
+  final double? fontSize;
+  final double? iconsize;
+  final double? spacing;
+  const HomeMenuCard({
+    super.key,
+    required this.menuItem,
+    this.height,
+    this.width,
+    this.fontSize,
+    this.iconsize,
+    this.spacing,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final size = MediaQuery.of(context).size;
     return InkWell(
       child: Container(
         decoration: BoxDecoration(
@@ -22,16 +36,19 @@ class HomeMenuCard extends StatelessWidget {
             ),
           ],
         ),
-        width: 200,
-        height: 200,
+        width: width ?? size.width * 0.40,
+        height: height ?? size.width * 0.40,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(menuItem.icon, size: 80),
-            SizedBox(height: 20),
+            Icon(menuItem.icon, size: iconsize ?? 80),
+            SizedBox(height: spacing ?? 20),
             Text(
               menuItem.title,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: fontSize ?? 15,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),

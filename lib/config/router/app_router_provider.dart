@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:wms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:wms/features/auth/presentation/screens/screens_auth.dart';
 import 'package:wms/features/home/presentation/screens/home_screen.dart';
-import 'package:wms/features/vehicles/screens/vehicle_screens.dart';
+import 'package:wms/features/vehicles/presentation/screens/vehicle_screens.dart';
 import 'package:wms/presentation/screens/shared_screens.dart';
 import '../../features/customers/presentation/screens/customer_screens.dart';
 

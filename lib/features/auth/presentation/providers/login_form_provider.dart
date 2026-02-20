@@ -37,6 +37,7 @@ class LoginNotifier extends Notifier<LoginFormState> {
   }
 
   void _touchAll() {
+    //ojito aqui, se crean nuevas instancias de username y password con el mismo valor pero con el estado dirty para que se muestren los errores de validación
     final username = Username.dirty(value: state.username.value);
     final password = Password.dirty(value: state.password.value);
     state = state.copyWith(

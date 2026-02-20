@@ -19,6 +19,7 @@ class Password extends FormzInput<String, PasswordError> {
     if (displayError == PasswordError.lowLength) {
       return "la contraseña debe tener al menos 8 caracteres";
     }
+    return null;
   }
 
   // Override validator to handle validating a given input value.

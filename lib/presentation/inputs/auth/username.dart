@@ -15,6 +15,7 @@ class Username extends FormzInput<String, UsernameError> {
     if (displayError == UsernameError.invalid) {
       return "el username debe tener al menos 6 caracteres";
     }
+    return null;
   }
 
   @override
