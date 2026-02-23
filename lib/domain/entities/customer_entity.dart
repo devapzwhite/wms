@@ -4,7 +4,7 @@ class Customer {
   final String documentId;
   final String name;
   final String lastName;
-  final String? phone;
+  final String phone;
   final String? email;
   final String? address;
   final DateTime? createAt;
@@ -14,9 +14,12 @@ class Customer {
     required this.documentId,
     required this.name,
     required this.lastName,
-    this.phone,
+    required this.phone,
     this.email,
     this.address,
     this.createAt,
   });
+
+  factory Customer.empty() =>
+      Customer(documentId: '', name: '', lastName: '', phone: '');
 }

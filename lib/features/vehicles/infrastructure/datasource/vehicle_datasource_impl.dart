@@ -44,9 +44,34 @@ class VehicleDatasourceImpl extends VehiclesDatasource {
   }
 
   @override
-  Future<Vehicle> addVehicle(Vehicle vehicle) {
-    // TODO: implement addVehicle
-    throw UnimplementedError();
+  Future<Vehicle> addVehicle(Vehicle vehicle) async {
+    try {
+      final data = VehicleMapper.tipoVehiculoToData(vehicle);
+      final response = await dio.post(
+        '',
+        data: data,
+        options: Options(
+          headers: {
+            'Authorization':
+                'Bearer ${ref.read(authProvider).userSession!.token.accessToken}',
+          },
+        ),
+      );
+      return vehicle = VehicleMapper.dataToVehicleEntity(response.data);
+    } on DioException catch (e) {
+      if (e.response!.statusCode == 400) {
+        throw VehicleErrors(message: 'Este vehiculo ya existe');
+      }
+      if (e.response?.statusCode == 401) {
+        throw VehicleErrors(message: 'Token expirado');
+      }
+      if (e.response?.statusCode == 422) {
+        throw VehicleErrors(message: 'Falta elementos para el post');
+      }
+      throw VehicleErrors(message: 'Dio: Vehiculo no registrado');
+    } catch (e) {
+      throw VehicleErrors(message: 'Excepcion no controlado ${e.toString()}');
+    }
   }
 
   @override

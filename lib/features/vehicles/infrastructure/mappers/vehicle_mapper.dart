@@ -10,9 +10,21 @@ class VehicleMapper {
     plate: data["plate"],
     model: data["model"],
     brand: data['brand'],
+    year: data['year'],
     photoUrl: data['photo_url'] ?? 'no photo',
     createAt: DateTime.tryParse(data["created_at"]),
   );
+
+  static Map<String, dynamic> tipoVehiculoToData(Vehicle vehicle) =>
+      Map<String, dynamic>.from({
+        "customer_id": vehicle.customerId,
+        "vehicle_type": vehicle.vehicleType.label,
+        "plate": vehicle.plate,
+        "brand": vehicle.brand,
+        "model": vehicle.model,
+        "year": vehicle.year,
+      });
+
   static TipoVehiculo textToTipoVehiculo(String type) {
     switch (type) {
       case "CAR":

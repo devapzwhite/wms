@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wms/features/home/config/router/list_menu_items.dart';
+import 'package:wms/features/vehicles/presentation/providers/form_add_vehicle_provider.dart';
 import 'package:wms/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:wms/presentation/widgets/widgets.dart';
 
@@ -26,6 +27,14 @@ class _VehicleMenuScreenState extends ConsumerState<VehicleMenuScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final vehiclesProvider = ref.watch(vehiclesNotifierProvider);
+    ref.listen(formAddVehicleNotifierProvider, (previous, next) {
+      if (!next.isSubmited) return;
+      if (next.errorMessage != '') return;
+      print('registrado!');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vehiculo registrado!')));
+    });
 
     return Scaffold(
       appBar: AppBarCustom(title: title),

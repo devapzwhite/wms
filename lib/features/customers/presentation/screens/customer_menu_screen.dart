@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wms/features/customers/presentation/providers/customer_provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:wms/features/customers/presentation/providers/customers_provider.dart';
 import 'package:wms/features/home/config/router/list_menu_items.dart';
 import 'package:wms/presentation/widgets/widgets.dart';
 
@@ -92,6 +93,13 @@ class _CustomerMenuScreenState extends ConsumerState<CustomerMenuScreen> {
                                             style: TextStyle(fontSize: 11),
                                           ),
                                         ],
+                                      ),
+                                      Spacer(),
+                                      IconButton(
+                                        onPressed: () => context.push(
+                                          '/customers/details/${customer.id}',
+                                        ),
+                                        icon: Icon(Icons.arrow_forward_ios),
                                       ),
                                     ],
                                   ),

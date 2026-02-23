@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wms/domain/entities/customer_entity.dart';
 import 'package:wms/features/customers/domain/datasource/customers_datasource.dart';
+import 'package:wms/features/customers/domain/entity/customer_details_entity.dart';
 import 'package:wms/features/customers/domain/repository/customers_repository.dart';
 import 'package:wms/features/customers/infrastructure/datasource/customers_datasource_impl.dart';
 
@@ -41,5 +42,10 @@ class CustomersRepositoryImpl extends CustomersRepository {
   @override
   Future<Customer> addCustomer(Customer customer) async {
     return customersDatasource.addCustomer(customer);
+  }
+
+  @override
+  Future<CustomerDetails> getDetailsCustomer(int id) {
+    return customersDatasource.getDetailsCustomer(id);
   }
 }

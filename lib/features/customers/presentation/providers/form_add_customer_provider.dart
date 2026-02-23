@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:formz/formz.dart';
+import 'package:wms/config/helpers/customer_provider_helpers.dart';
 import 'package:wms/domain/entities/entities.dart';
 import 'package:wms/features/customers/errors/customer_errors.dart';
-import 'package:wms/features/customers/presentation/providers/customer_provider.dart';
+import 'package:wms/features/customers/presentation/providers/customers_provider.dart';
 import 'package:wms/features/customers/presentation/providers/customer_repository_provider.dart';
-import 'package:wms/presentation/inputs/customers/phone_number.dart';
-import 'package:wms/presentation/inputs/customers/simple_input.dart';
 import 'package:wms/presentation/inputs/inputs.dart';
 
 final formAddCustomerProvider =
@@ -107,7 +106,7 @@ class FormAddCustomerNotifier extends Notifier<FormAddCustomerState> {
       documentId: state.documentId.value,
       name: state.name.value,
       lastName: state.lastName.value,
-      phone: state.phone.value,
+      phone: CustomerProviderHelpers.completePhoneNumber(state.phone.value),
       email: state.email,
       address: state.address,
     );

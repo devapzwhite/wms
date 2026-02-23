@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wms/domain/entities/customer_entity.dart';
 import 'package:wms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:wms/features/customers/domain/datasource/customers_datasource.dart';
+import 'package:wms/features/customers/domain/entity/customer_details_entity.dart';
 import 'package:wms/features/customers/errors/customer_errors.dart';
 import 'package:wms/features/customers/infrastructure/mappers/customer_mappers.dart';
 
@@ -98,6 +99,29 @@ class CustomersDatasourceImpl extends CustomersDatasource {
       );
     } catch (e) {
       throw CustomerErrors(message: 'Error no controlado ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<CustomerDetails> getDetailsCustomer(int id) async {
+    try {
+      final response = await dio.get(
+        '/$id/details',
+        options: Options(headers: {'Authorization': 'Bearer ${_getToken()}'}),
+      );
+      final CustomerDetails customerDetails =
+          CustomerMappers.dataToCustomerDetailsEntity(response.data);
+      return customerDetails;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw CustomerErrors(message: 'token expirado: ${e.message}');
+      }
+      throw CustomerErrors(
+        message:
+            "error de conexion: ${e.response?.statusCode ?? 'sin respuesta'}",
+      );
+    } catch (e) {
+      throw CustomerErrors(message: "error sin respuesta ${e.toString()}");
     }
   }
 }

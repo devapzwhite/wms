@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wms/config/enums/tipo_vehiculo_enum.dart';
-import 'package:wms/features/customers/presentation/providers/customer_provider.dart';
+import 'package:wms/features/customers/presentation/providers/customers_provider.dart';
+import 'package:wms/features/vehicles/presentation/providers/form_add_vehicle_provider.dart';
 import 'package:wms/presentation/widgets/widgets.dart';
 import 'package:go_router/go_router.dart';
 
@@ -35,6 +36,32 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
   @override
   Widget build(BuildContext context) {
     final customers = ref.watch(customerNotifierProvider).customers;
+    final formAddVehicleProvider = ref.read(
+      formAddVehicleNotifierProvider.notifier,
+    );
+    ref.listen(formAddVehicleNotifierProvider, (previous, next) {
+      if (next.isSubmited && next.errorMessage == '') {
+        context.pop();
+        return;
+      }
+      if (previous?.errorMessage == next.errorMessage) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text('Error al registrar Vehiculo'),
+          content: Text(next.errorMessage),
+          actions: [
+            TextButton(
+              onPressed: () {
+                ref.read(formAddVehicleNotifierProvider.notifier).clearErrors();
+                if (mounted) context.pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    });
 
     final colors = Theme.of(context).colorScheme;
 
@@ -74,6 +101,8 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                           ),
                           onChanged: (value) {
                             print('Cliente seleccionado: ${value}');
+                            if (value == null) return;
+                            formAddVehicleProvider.onClientIdSelected(value);
                             clientIsSelected.value =
                                 value !=
                                 null; // Aquí se actualizaría el estado para mostrar el formulario de vehículo
@@ -109,11 +138,8 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                                     .toList(),
 
                                 hintText: 'Seleccione un tipo de vehículo',
-                                onSelected: (value) {
-                                  print(
-                                    'Tipo de vehículo seleccionado: ${value}',
-                                  );
-                                },
+                                onSelected: (value) =>
+                                    formAddVehicleProvider.onTypeChanged(value),
                               ),
                               SizedBox(height: 20),
                               TextFormField(
@@ -121,7 +147,10 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                                   labelText: "Placa",
                                   border: OutlineInputBorder(),
                                 ),
+                                onChanged:
+                                    formAddVehicleProvider.onPlateChanged,
                               ),
+
                               SizedBox(height: 20),
 
                               TextFormField(
@@ -129,6 +158,8 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                                   labelText: "Marca",
                                   border: OutlineInputBorder(),
                                 ),
+                                onChanged:
+                                    formAddVehicleProvider.onBrandChanged,
                               ),
                               SizedBox(height: 20),
 
@@ -141,6 +172,8 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                                         labelText: "Modelo",
                                         border: OutlineInputBorder(),
                                       ),
+                                      onChanged:
+                                          formAddVehicleProvider.onModelChanged,
                                     ),
                                   ),
                                   Flexible(
@@ -151,6 +184,8 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                                         labelText: "AÑO",
                                         border: OutlineInputBorder(),
                                       ),
+                                      onChanged:
+                                          formAddVehicleProvider.onYearChanged,
                                     ),
                                   ),
                                 ],
@@ -161,7 +196,12 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                                 children: [
                                   IconButton.filledTonal(
                                     onPressed: () {
-                                      // Aquí iría la lógica para guardar el vehículo
+                                      ref
+                                          .read(
+                                            formAddVehicleNotifierProvider
+                                                .notifier,
+                                          )
+                                          .onSubmit();
                                     },
                                     icon: Row(
                                       children: [

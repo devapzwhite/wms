@@ -4,3 +4,4 @@ export 'token_entity.dart';
 export 'menu_item_entity.dart';
 export 'customer_entity.dart';
 export 'vehicle_entity.dart';
+export 'workshop_entity.dart';

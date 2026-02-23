@@ -53,6 +53,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'updatecustomer',
             builder: (context, state) => UpdateCustomerScreen(),
           ),
+          GoRoute(
+            path: 'details/:id_customer',
+            builder: (context, state) {
+              final idCustomer = state.pathParameters['id_customer']!;
+              return CustomerDetailScreen(idCustomer: int.parse(idCustomer));
+            },
+          ),
         ],
       ),
       GoRoute(
