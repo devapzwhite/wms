@@ -4,6 +4,7 @@ import 'package:wms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:wms/features/auth/presentation/screens/screens_auth.dart';
 import 'package:wms/features/home/presentation/screens/home_screen.dart';
 import 'package:wms/features/vehicles/presentation/screens/vehicle_screens.dart';
+import 'package:wms/features/workorders/presentation/screens/workorders_screens.dart';
 import 'package:wms/presentation/screens/shared_screens.dart';
 import '../../features/customers/presentation/screens/customer_screens.dart';
 
@@ -50,8 +51,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => AddCustomerScreen(),
           ),
           GoRoute(
-            path: 'updatecustomer',
-            builder: (context, state) => UpdateCustomerScreen(),
+            path: 'updatecustomer/:id_customer',
+            builder: (context, state) {
+              final String idCustomer = state.pathParameters['id_customer']!;
+              return UpdateCustomerScreen(idCustomer: int.parse(idCustomer));
+            },
           ),
           GoRoute(
             path: 'details/:id_customer',
@@ -73,6 +77,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'updatevehicle',
             builder: (context, state) => UpdateVehicleScreen(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/workorders',
+        builder: (context, state) => MenuWorkordersScreen(),
+        routes: [
+          GoRoute(
+            path: 'addworkorder',
+            builder: (context, state) => CreateWorkorderScreen(),
           ),
         ],
       ),

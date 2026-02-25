@@ -77,7 +77,7 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
     final Vehicle vehicle = Vehicle(
       customerId: state.clientId,
       vehicleType: VehicleMapper.textToTipoVehiculo(state.tipo),
-      plate: state.placa.value,
+      plate: state.placa.value.toUpperCase(),
       brand: state.marca.value,
       model: state.modelo.value,
       year: int.tryParse(state.anio),

@@ -25,7 +25,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final orientation = MediaQuery.of(context).orientation;
     final customerData = ref.watch(customerDetailNotifierProvider);
     final colors = Theme.of(context).colorScheme;
     final textStyle = Theme.of(context).textTheme;
@@ -38,9 +37,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
             children: [
               SizedBox(
                 width: size.width - 20,
-                height: orientation == Orientation.portrait
-                    ? size.height * 0.27
-                    : size.height * 0.60,
                 child: Card(
                   child: Padding(
                     padding: EdgeInsetsGeometry.all(15),
