@@ -6,7 +6,7 @@ abstract class CustomersDatasource {
   Future<List<Customer>> getCustomers();
   Future<Customer> getCustomer(int id);
   Future<Customer> getCustomerByDocumentId(int shopId, String documentId);
-  Future<Customer> updateCustomer(int id);
+  Future<Customer> updateCustomer(Customer customer);
   Future<void> deleteUser(int id);
   Future<CustomerDetails> getDetailsCustomer(int id);
 }

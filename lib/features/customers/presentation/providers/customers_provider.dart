@@ -17,15 +17,36 @@ class CustomerNotifier extends Notifier<CustomerState> {
 
   Future<void> loadCustomers() async {
     if (state.isLoading) return;
-    state = state.copyWith(isLoading: true);
-    final repository = ref.read(customersRepositoryProvider);
-    final customers = await repository.getCustomers();
-    // state = [...state, ...customers];
-    state = state.copyWith(customers: customers, isLoading: false);
+    try {
+      state = state.copyWith(isLoading: true);
+      final repository = ref.read(customersRepositoryProvider);
+      final customers = await repository.getCustomers();
+      // state = [...state, ...customers];
+      state = state.copyWith(customers: customers, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false);
+    }
   }
 
   void addCustomer(Customer customer) {
     state = state.copyWith(customers: [...state.customers, customer]);
+  }
+
+  Future<Customer?> getCustomerToUpdate(int id) async {
+    print('rebuild!!');
+    final customer = state.customers.cast<Customer?>().firstWhere(
+      (customer) => customer?.id == id,
+      orElse: () => null,
+    );
+    if (customer != null) return customer;
+    try {
+      final repository = ref.read(customersRepositoryProvider);
+      final Customer customerdb = await repository.getCustomer(id);
+      return customerdb;
+    } catch (e) {
+      print('getCustomerToUpdate error: $e');
+      return null;
+    }
   }
 }
 

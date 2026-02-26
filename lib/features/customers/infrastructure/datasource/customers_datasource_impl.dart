@@ -67,9 +67,28 @@ class CustomersDatasourceImpl extends CustomersDatasource {
   }
 
   @override
-  Future<Customer> updateCustomer(int id) {
-    // TODO: implement updateCustomer
-    throw UnimplementedError();
+  Future<Customer> updateCustomer(Customer customer) async {
+    final data = CustomerMappers.customerUpdateEntityToData(customer);
+    try {
+      if (data.isEmpty) {
+        throw CustomerErrors(message: 'no hay datos a modificar!');
+      }
+      final result = await dio.put(
+        '/${customer.id}',
+        data: data,
+        options: Options(headers: {'Authorization': 'Bearer ${_getToken()}'}),
+      );
+      final Customer customerResult = CustomerMappers.dataToCustomerEntity(
+        result.data,
+      );
+      return customerResult;
+    } on DioException catch (e) {
+      throw CustomerErrors(message: e.message!);
+    } on CustomerErrors catch (e) {
+      throw CustomerErrors(message: e.message);
+    } catch (e) {
+      throw CustomerErrors(message: 'error no controlado ${e.toString()}');
+    }
   }
 
   @override
@@ -90,7 +109,7 @@ class CustomersDatasourceImpl extends CustomersDatasource {
       }
       if (e.response?.statusCode == 400) {
         throw CustomerErrors(
-          message: 'Este Ususario ya se encuentra registrado',
+          message: 'Este Cliente ya se encuentra registrado',
         );
       }
       throw CustomerErrors(

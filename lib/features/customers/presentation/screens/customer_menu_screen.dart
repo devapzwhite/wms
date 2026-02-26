@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wms/features/customers/presentation/providers/customers_provider.dart';
-import 'package:wms/features/home/config/router/list_menu_items.dart';
 import 'package:wms/presentation/widgets/widgets.dart';
 
 class CustomerMenuScreen extends ConsumerStatefulWidget {
@@ -26,6 +25,7 @@ class _CustomerMenuScreenState extends ConsumerState<CustomerMenuScreen> {
   Widget build(BuildContext context) {
     final String title = "Menú de Clientes";
     final customersProvider = ref.watch(customerNotifierProvider);
+
     return Scaffold(
       appBar: AppBarCustom(title: title),
       body: Padding(

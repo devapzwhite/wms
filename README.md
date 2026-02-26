@@ -184,7 +184,7 @@ El backend gestiona las siguientes entidades principales en PostgreSQL:
 
 ## 🔗 Repositorios relacionados
 
-- **Backend API:** [workshops_api](https://github.com/tu-usuario/workshops_api) — FastAPI + PostgreSQL + JWT
+- **Backend API:** [workshops_api](https://github.com/devapzwhite/workshops_api.git) — FastAPI + PostgreSQL + JWT
 
 ---
 

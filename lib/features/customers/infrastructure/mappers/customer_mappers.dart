@@ -9,9 +9,26 @@ class CustomerMappers {
         'name': customer.name,
         'last_name': customer.lastName,
         'phone': customer.phone,
-        'email': customer.email,
-        'address': customer.address,
+        'email': customer.email == '' ? null : customer.email,
+        'address': customer.address == '' ? null : customer.address,
       });
+
+  static Map<String, dynamic> customerUpdateEntityToData(Customer customer) {
+    final result = Map<String, dynamic>.from({
+      'document_id': customer.documentId,
+      'name': customer.name,
+      'last_name': customer.lastName,
+      'phone': customer.phone,
+      'email': customer.email == '' || customer.email == null
+          ? ''
+          : customer.email,
+      'address': customer.address == '' || customer.address == null
+          ? ''
+          : customer.address,
+    });
+    result.removeWhere((key, value) => value == '');
+    return result;
+  }
 
   static Customer dataToCustomerEntity(Map<String, dynamic> data) => Customer(
     id: data["id"],
@@ -24,6 +41,7 @@ class CustomerMappers {
     address: data["address"] ?? 'no address',
     createAt: DateTime.tryParse(data["created_at"]),
   );
+
   static CustomerDetails dataToCustomerDetailsEntity(
     Map<String, dynamic> data,
   ) {

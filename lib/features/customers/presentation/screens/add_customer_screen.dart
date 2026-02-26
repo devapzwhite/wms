@@ -122,6 +122,33 @@ class _FormAddCustomerState extends ConsumerState<FormAddCustomer> {
     final formNotifier = ref.read(formAddCustomerProvider.notifier);
     final formProvider = ref.watch(formAddCustomerProvider);
     final colors = Theme.of(context).colorScheme;
+    ref.listen(formAddCustomerProvider, (previous, next) {
+      if (next.isSubmited) {
+        if (next.errorMessage == null) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Cliente Registrado Correctamente!'),
+              actions: [
+                FilledButton(
+                  onPressed: () {
+                    context.pop();
+                    context.pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+        if (next.errorMessage != null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+          ref.read(formAddCustomerProvider.notifier).onAceptResults();
+        }
+      }
+    });
     return Form(
       child: Padding(
         padding: const EdgeInsets.all(15),
@@ -179,52 +206,7 @@ class _FormAddCustomerState extends ConsumerState<FormAddCustomer> {
                     ),
                   ),
                   onPressed: () async {
-                    final res = await ref
-                        .read(formAddCustomerProvider.notifier)
-                        .onSubmit();
-                    if (res) {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('Éxito'),
-                          content: Text('Cliente registrado correctamente'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                context.pop();
-                                context.pop();
-                              },
-                              child: Text('Aceptar'),
-                            ),
-                          ],
-                        ),
-                      );
-                    } else {
-                      final currentState = ref.read(formAddCustomerProvider);
-                      // agregamos el currentState para mostrar el error que se produjo al intentar registrar el cliente, ya que el onsubmit es un Future<bool>
-                      //y no puede retornar el error directamente, por que el watch no puede ser usado dentro del onSubmit,
-                      //por lo que no podemos retornar el error directamente,
-                      //pero si podemos leer el estado actual del formAddCustomerProvider para obtener el errorMessage y mostrarlo en un dialog
-                      //entonces lo que hacemos es leer el estado actual del formAddCustomerProvider para obtener el errorMessage y mostrarlo en un dialog
-                      if (currentState.errorMessage != null) {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text('Error'),
-                            content: Text(currentState.errorMessage!),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  formNotifier.onAceptError();
-                                  context.pop();
-                                },
-                                child: Text('Aceptar'),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    }
+                    await ref.read(formAddCustomerProvider.notifier).onSubmit();
                   },
                   icon: Row(
                     children: [

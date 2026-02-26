@@ -35,8 +35,8 @@ class CustomersRepositoryImpl extends CustomersRepository {
   }
 
   @override
-  Future<Customer> updateCustomer(int id) async {
-    return customersDatasource.updateCustomer(id);
+  Future<Customer> updateCustomer(Customer customer) async {
+    return customersDatasource.updateCustomer(customer);
   }
 
   @override

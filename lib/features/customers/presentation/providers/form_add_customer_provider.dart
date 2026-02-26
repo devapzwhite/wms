@@ -20,6 +20,10 @@ class FormAddCustomerNotifier extends Notifier<FormAddCustomerState> {
     return FormAddCustomerState();
   }
 
+  void onAceptResults() {
+    state = state.copyWith(isSubmited: false, clearErrorMessage: true);
+  }
+
   void onChangeDocumentId(String value) {
     final documentId = DocumentId.dirty(value: value);
     state = state.copyWith(
@@ -72,10 +76,6 @@ class FormAddCustomerNotifier extends Notifier<FormAddCustomerState> {
     );
   }
 
-  void onAceptError() {
-    state = state.copyWith(clearErrorMessage: true);
-  }
-
   void onChangeEmail(String value) {
     state = state.copyWith(email: value);
   }
@@ -84,7 +84,73 @@ class FormAddCustomerNotifier extends Notifier<FormAddCustomerState> {
     state = state.copyWith(address: value);
   }
 
-  Future<bool> onSubmit() async {
+  Future<void> onSubmit() async {
+    _validate();
+    final customerRepository = ref.read(customersRepositoryProvider);
+    final customerProvider = ref.read(customerNotifierProvider.notifier);
+    if (!state.isFormValid) return;
+    final customer = Customer(
+      documentId: state.documentId.value,
+      name: state.name.value,
+      lastName: state.lastName.value,
+      phone: CustomerProviderHelpers.completePhoneNumber(state.phone.value),
+      email: state.email,
+      address: state.address,
+    );
+    try {
+      final customerResponse = await customerRepository.addCustomer(customer);
+      if (!ref.mounted) return;
+      customerProvider.addCustomer(customerResponse);
+      state = state.copyWith(isSubmited: true);
+    } on CustomerErrors catch (e) {
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        isSubmited: true,
+        errorMessage: e.message.toString(),
+      );
+      return;
+    } catch (e) {
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        isSubmited: true,
+        errorMessage: 'Error no controlado ${e.toString()}',
+      );
+      return;
+    }
+  }
+
+  Future<void> onUpdateCustomer(Customer customer) async {
+    final updatesCustomer = getchanges(customer);
+    final customersNotifier = ref.read(customerNotifierProvider.notifier);
+    final repository = ref.read(customersRepositoryProvider);
+
+    try {
+      await repository.updateCustomer(updatesCustomer);
+      if (!ref.mounted) return;
+      customersNotifier.loadCustomers();
+      state = state.copyWith(isSubmited: true);
+    } on CustomerErrors catch (e) {
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        isSubmited: true,
+        errorMessage: 'error al modificar usuario ${e.message}',
+      );
+    }
+  }
+
+  Customer getchanges(Customer customer) {
+    return customer = Customer(
+      id: customer.id,
+      documentId: state.documentId.isPure ? '' : state.documentId.value,
+      name: state.name.isPure ? '' : state.name.value,
+      lastName: state.lastName.isPure ? '' : state.lastName.value,
+      phone: state.phone.isPure ? '' : state.phone.value,
+      address: state.address?.trim() == '' ? null : state.address,
+      email: state.email?.trim() == '' ? null : state.email?.trim(),
+    );
+  }
+
+  void _validate() {
     state = state.copyWith(
       documentId: DocumentId.dirty(value: state.documentId.value),
       name: BasicStringInput.dirty(value: state.name.value),
@@ -101,30 +167,6 @@ class FormAddCustomerNotifier extends Notifier<FormAddCustomerState> {
         state.phone,
       ]),
     );
-    if (!state.isFormValid) return false;
-    final customer = Customer(
-      documentId: state.documentId.value,
-      name: state.name.value,
-      lastName: state.lastName.value,
-      phone: CustomerProviderHelpers.completePhoneNumber(state.phone.value),
-      email: state.email,
-      address: state.address,
-    );
-    try {
-      final customerResponse = await ref
-          .read(customersRepositoryProvider)
-          .addCustomer(customer);
-      ref.read(customerNotifierProvider.notifier).addCustomer(customerResponse);
-      return true;
-    } on CustomerErrors catch (e) {
-      state = state.copyWith(errorMessage: e.message.toString());
-      return false;
-    } catch (e) {
-      state = state.copyWith(
-        errorMessage: 'Error no controlado ${e.toString()}',
-      );
-      return false;
-    }
   }
 }
 
@@ -137,6 +179,7 @@ class FormAddCustomerState {
   final String? address;
   final bool isFormValid;
   final String? errorMessage;
+  final bool isSubmited;
   FormAddCustomerState({
     this.documentId = const DocumentId.pure(),
     this.name = const BasicStringInput.pure(),
@@ -146,6 +189,7 @@ class FormAddCustomerState {
     this.address,
     this.isFormValid = false,
     this.errorMessage,
+    this.isSubmited = false,
   });
 
   FormAddCustomerState copyWith({
@@ -158,6 +202,7 @@ class FormAddCustomerState {
     bool? isFormValid,
     String? errorMessage,
     bool clearErrorMessage = false,
+    bool? isSubmited,
   }) => FormAddCustomerState(
     documentId: documentId ?? this.documentId,
     name: name ?? this.name,
@@ -169,5 +214,6 @@ class FormAddCustomerState {
     errorMessage: clearErrorMessage
         ? null
         : (errorMessage ?? this.errorMessage),
+    isSubmited: isSubmited ?? this.isSubmited,
   );
 }
