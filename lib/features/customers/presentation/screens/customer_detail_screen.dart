@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wms/features/customers/presentation/providers/customer_detail_provider.dart';
 import 'package:wms/presentation/widgets/widgets.dart';
@@ -121,43 +122,52 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                                   ),
                                 ],
                               ),
-                              leading: IconButton(
-                                onPressed: () async {
-                                  await showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return SimpleDialog(
-                                        title: Text(
-                                          '${vehicle.plate.toUpperCase()} ',
+                              onTap: () async {
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return SimpleDialog(
+                                      title: Text(
+                                        '${vehicle.plate.toUpperCase()} ',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      children: [
+                                        Text(
+                                          vehicle.vehicleType.nombre,
                                           textAlign: TextAlign.center,
                                         ),
-                                        children: [
-                                          Text(
-                                            vehicle.vehicleType.nombre,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          Text(
-                                            vehicle.brand,
-                                            textAlign: TextAlign.center,
-                                          ),
+                                        Text(
+                                          vehicle.brand,
+                                          textAlign: TextAlign.center,
+                                        ),
 
-                                          Text(
-                                            vehicle.model,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          Text(
-                                            vehicle.year.toString(),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ],
-                                      );
-                                    },
+                                        Text(
+                                          vehicle.model,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        Text(
+                                          vehicle.year.toString(),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              leading: IconButton(
+                                onPressed: () {
+                                  context.push(
+                                    '/vehicles/updatevehicle/${vehicle.id}',
                                   );
                                 },
-                                icon: Icon(Icons.info_outline_rounded),
+                                icon: Icon(Icons.edit_document),
                               ),
                               trailing: IconButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  context.push(
+                                    '/workorders/addorder/${vehicle.id}',
+                                  );
+                                },
                                 icon: Icon(Icons.note_add),
                               ),
                             ),

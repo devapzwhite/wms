@@ -5,7 +5,7 @@ class AppTheme {
   final bool isDarkMode;
   final int indexColor;
 
-  AppTheme({this.isDarkMode = false, this.indexColor = 10});
+  AppTheme({this.isDarkMode = true, this.indexColor = 10});
 
   ThemeData getTheme() {
     return ThemeData(

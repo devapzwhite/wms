@@ -106,7 +106,7 @@ class _CustomerMenuScreenState extends ConsumerState<CustomerMenuScreen> {
         onPressed: () {
           context.push('/customers/addcustomer');
         },
-        child: Icon(Icons.add),
+        child: Icon(Icons.person_add_alt_sharp),
       ),
     );
   }

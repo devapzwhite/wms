@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wms/features/home/config/router/list_menu_items.dart';
 import 'package:wms/features/vehicles/presentation/providers/form_add_vehicle_provider.dart';
 import 'package:wms/features/vehicles/presentation/providers/vehicles_provider.dart';
@@ -45,20 +46,32 @@ class _VehicleMenuScreenState extends ConsumerState<VehicleMenuScreen> {
             Container(
               alignment: Alignment.topCenter,
               child: Wrap(
-                spacing: 20,
-                runSpacing: 20,
-                children: vehicleListMenuItems
-                    .map(
-                      (item) => HomeMenuCard(
-                        menuItem: item,
-                        width: size.width * 0.25,
-                        height: size.width * 0.25,
-                        fontSize: 9,
-                        iconsize: 30,
-                        spacing: 5,
-                      ),
-                    )
-                    .toList(),
+                spacing: 5,
+                runSpacing: 5,
+                children: [
+                  //TODO: Refactorizar esto xd
+                  Chip(
+                    label: Text(
+                      '${vehiclesProvider.vehicles.length.toString()} vehiculos',
+                    ),
+                    avatar: Icon(Icons.minor_crash_outlined),
+                  ),
+                  Chip(
+                    label: Text(
+                      'Autos: ${vehiclesProvider.vehicles.where((vehicle) => vehicle.vehicleType.nombre == 'Auto').length}',
+                    ),
+                  ),
+                  Chip(
+                    label: Text(
+                      'Vagoneta: ${vehiclesProvider.vehicles.where((vehicle) => vehicle.vehicleType.nombre == 'Vagoneta').length}',
+                    ),
+                  ),
+                  Chip(
+                    label: Text(
+                      'Furgon: ${vehiclesProvider.vehicles.where((vehicle) => vehicle.vehicleType.label == 'VAN').length}',
+                    ),
+                  ),
+                ],
               ),
             ),
             Divider(),
@@ -83,6 +96,12 @@ class _VehicleMenuScreenState extends ConsumerState<VehicleMenuScreen> {
                 : CircularProgressIndicator(),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.push('/vehicles/addvehicle');
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
