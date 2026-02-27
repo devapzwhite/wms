@@ -7,7 +7,8 @@ import 'package:wms/presentation/widgets/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 class AddVehicleScreen extends ConsumerStatefulWidget {
-  const AddVehicleScreen({super.key});
+  final int? idCliente;
+  const AddVehicleScreen({this.idCliente, super.key});
 
   @override
   ConsumerState<AddVehicleScreen> createState() => _AddVehicleScreenState();
@@ -23,8 +24,18 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      ref.read(customerNotifierProvider.notifier).loadCustomers();
+      _initValues();
     });
+  }
+
+  void _initValues() {
+    ref.read(customerNotifierProvider.notifier).loadCustomers();
+    if (widget.idCliente != null) {
+      ref
+          .read(formAddVehicleNotifierProvider.notifier)
+          .onClientIdSelected(widget.idCliente!);
+      clientIsSelected.value = true;
+    }
   }
 
   @override
@@ -65,6 +76,13 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
 
     final colors = Theme.of(context).colorScheme;
 
+    String _getNameCustomer(int idCustomer) {
+      final customer = customers
+          .where((customer) => customer.id == widget.idCliente)
+          .first;
+      return '${customer.name} ${customer.lastName}';
+    }
+
     return Scaffold(
       appBar: AppBarCustom(title: title),
       body: SingleChildScrollView(
@@ -78,36 +96,50 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                   child: Form(
                     child: Column(
                       children: [
-                        DropdownButtonFormField(
-                          isExpanded: true,
-                          decoration: InputDecoration(
-                            labelText: "Cliente",
-                            hint: Text(
-                              "Seleccione un cliente",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 17),
-                            ),
-                            border: OutlineInputBorder(),
-                          ),
-                          items: List<DropdownMenuItem>.from(
-                            customers.map((customer) {
-                              return DropdownMenuItem(
-                                value: customer.id,
-                                child: Text(
-                                  '${customer.name} ${customer.lastName}',
+                        widget.idCliente == null
+                            ? DropdownButtonFormField(
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  labelText: "Cliente",
+                                  hint: Text(
+                                    "Seleccione un cliente",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 17),
+                                  ),
+                                  border: OutlineInputBorder(),
                                 ),
-                              );
-                            }),
-                          ),
-                          onChanged: (value) {
-                            print('Cliente seleccionado: ${value}');
-                            if (value == null) return;
-                            formAddVehicleProvider.onClientIdSelected(value);
-                            clientIsSelected.value =
-                                value !=
-                                null; // Aquí se actualizaría el estado para mostrar el formulario de vehículo
-                          },
-                        ),
+                                items: List<DropdownMenuItem>.from(
+                                  customers.map((customer) {
+                                    return DropdownMenuItem(
+                                      value: customer.id,
+                                      child: Text(
+                                        '${customer.name} ${customer.lastName}',
+                                      ),
+                                    );
+                                  }),
+                                ),
+                                onChanged: (value) {
+                                  print('Cliente seleccionado: ${value}');
+                                  if (value == null) return;
+                                  formAddVehicleProvider.onClientIdSelected(
+                                    value,
+                                  );
+                                  clientIsSelected.value =
+                                      value !=
+                                      null; // Aquí se actualizaría el estado para mostrar el formulario de vehículo
+                                },
+                              )
+                            : TextFormField(
+                                enabled: false,
+                                decoration: InputDecoration(
+                                  labelText: _getNameCustomer(
+                                    widget.idCliente!,
+                                  ),
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged:
+                                    formAddVehicleProvider.onBrandChanged,
+                              ),
                       ],
                     ),
                   ),

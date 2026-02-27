@@ -16,10 +16,12 @@ class CustomerNotifier extends Notifier<CustomerDetailState> {
       customer: Customer.empty(),
       workshop: Workshop.empty(),
       vehicles: [],
+      isLoading: false,
     );
   }
 
   void loadDetailsCustomer(int id) async {
+    state = state.copyWith(isLoading: true);
     final repository = ref.read(customersRepositoryProvider);
     try {
       final CustomerDetails response = await repository.getDetailsCustomer(id);
@@ -27,9 +29,10 @@ class CustomerNotifier extends Notifier<CustomerDetailState> {
         customer: response.customerData,
         workshop: response.workshopData,
         vehicles: response.vehicles,
+        isLoading: false,
       );
     } on CustomerErrors catch (e) {
-      print(e.message);
+      state = state.copyWith(isLoading: false);
     }
   }
 }
@@ -38,20 +41,24 @@ class CustomerDetailState {
   final Customer customer;
   final Workshop workshop;
   final List<Vehicle> vehicles;
+  final bool isLoading;
 
   const CustomerDetailState({
     required this.customer,
     required this.workshop,
     required this.vehicles,
+    required this.isLoading,
   });
 
   CustomerDetailState copyWith({
     final Customer? customer,
     final Workshop? workshop,
     final List<Vehicle>? vehicles,
+    final bool? isLoading,
   }) => CustomerDetailState(
     customer: customer ?? this.customer,
     workshop: workshop ?? this.workshop,
     vehicles: vehicles ?? this.vehicles,
+    isLoading: isLoading ?? this.isLoading,
   );
 }

@@ -73,6 +73,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'addvehicle',
             builder: (context, state) => AddVehicleScreen(),
+            routes: [
+              GoRoute(
+                path: ':idCliente',
+                builder: (context, state) {
+                  final idCliente = state.pathParameters['idCliente'];
+                  return AddVehicleScreen(idCliente: int.tryParse(idCliente!));
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: 'updatevehicle/:id_vehicle',
