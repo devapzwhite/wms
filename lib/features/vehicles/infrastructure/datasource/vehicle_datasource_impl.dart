@@ -92,7 +92,6 @@ class VehicleDatasourceImpl extends VehiclesDatasource {
       final Vehicle vehicle = VehicleMapper.dataToVehicleEntity(response.data);
       return vehicle;
     } on DioException catch (e) {
-      print(e.response!.statusCode);
       if (e.response!.statusCode == 401) {
         throw VehicleErrors(message: 'token expirado');
       }

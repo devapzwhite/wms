@@ -66,7 +66,8 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
 
   void onSubmit() async {
     final bool isValid = _validate();
-    state = state.copyWith(isValid: isValid, isSubmited: true);
+    final repository = ref.read(vehicleRepositoryProvider);
+    state = state.copyWith(isValid: isValid);
     if (!isValid) return;
     final Vehicle vehicle = Vehicle(
       customerId: state.clientId,
@@ -77,14 +78,13 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
       year: int.tryParse(state.anio),
     );
     try {
-      await ref.read(vehicleRepositoryProvider).addVehicle(vehicle);
+      await repository.addVehicle(vehicle);
+      state = state.copyWith(isSubmited: true);
       ref.read(vehiclesNotifierProvider.notifier).loadVehicles();
-      //TODO:  HASTA AQUI REGISTRA EL VEHICULO
     } on VehicleErrors catch (e) {
-      state = state.copyWith(errorMessage: e.message);
-      print('error');
+      state = state.copyWith(isSubmited: true, errorMessage: e.message);
     } catch (e) {
-      print(e);
+      state = state.copyWith(isSubmited: true, errorMessage: e.toString());
     }
   }
 
@@ -112,6 +112,7 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
       plate: state.placa.isPure ? null : state.placa.value,
       brand: state.marca.isPure ? null : state.marca.value,
       model: state.modelo.isPure ? null : state.modelo.value,
+      year: state.anio == '' ? null : state.anio,
     );
     return vehicle;
   }

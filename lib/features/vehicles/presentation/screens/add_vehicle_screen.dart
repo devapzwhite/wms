@@ -16,9 +16,16 @@ class AddVehicleScreen extends ConsumerStatefulWidget {
 
 class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
   final String title = "Registrar Vehículo";
-  ValueNotifier<bool> clientIsSelected = ValueNotifier(
-    false,
-  ); // Cambia a true para mostrar el formulario de vehículo directamente
+  ValueNotifier<bool> clientIsSelected = ValueNotifier(false);
+
+  String get _customerName {
+    final customers = ref.read(customerNotifierProvider).customers;
+    return customers
+            .where((c) => c.id == widget.idCliente)
+            .map((c) => '${c.name} ${c.lastName}')
+            .firstOrNull ??
+        'Cargando...';
+  }
 
   @override
   void initState() {
@@ -51,37 +58,35 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
       formAddVehicleNotifierProvider.notifier,
     );
     ref.listen(formAddVehicleNotifierProvider, (previous, next) {
-      if (next.isSubmited && next.errorMessage == '') {
-        context.pop();
-        return;
-      }
-      if (previous?.errorMessage == next.errorMessage) return;
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text('Error al registrar Vehiculo'),
-          content: Text(next.errorMessage),
-          actions: [
-            TextButton(
-              onPressed: () {
-                ref.read(formAddVehicleNotifierProvider.notifier).clearErrors();
-                if (mounted) context.pop();
-              },
-              child: Text('OK'),
+      if (next.isSubmited) {
+        if (next.errorMessage == '') {
+          if (mounted) context.pop();
+          return;
+        }
+        if (next.errorMessage != '') {
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: Text('Error al registrar Vehiculo'),
+              content: Text(next.errorMessage),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    ref
+                        .read(formAddVehicleNotifierProvider.notifier)
+                        .clearErrors();
+                    if (mounted) context.pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
+          );
+        }
+      }
     });
 
     final colors = Theme.of(context).colorScheme;
-
-    String _getNameCustomer(int idCustomer) {
-      final customer = customers
-          .where((customer) => customer.id == widget.idCliente)
-          .first;
-      return '${customer.name} ${customer.lastName}';
-    }
 
     return Scaffold(
       appBar: AppBarCustom(title: title),
@@ -119,7 +124,6 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                                   }),
                                 ),
                                 onChanged: (value) {
-                                  print('Cliente seleccionado: ${value}');
                                   if (value == null) return;
                                   formAddVehicleProvider.onClientIdSelected(
                                     value,
@@ -132,9 +136,7 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
                             : TextFormField(
                                 enabled: false,
                                 decoration: InputDecoration(
-                                  labelText: _getNameCustomer(
-                                    widget.idCliente!,
-                                  ),
+                                  labelText: _customerName,
                                   border: OutlineInputBorder(),
                                 ),
                                 onChanged:

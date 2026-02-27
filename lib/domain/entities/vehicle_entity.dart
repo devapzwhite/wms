@@ -31,7 +31,7 @@ class VehicleUpdate {
   final String? plate;
   final String? brand;
   final String? model;
-  final int? year;
+  final String? year;
   final String? photoUrl;
 
   VehicleUpdate({
