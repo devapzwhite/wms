@@ -24,3 +24,23 @@ class Vehicle {
     this.createAt,
   });
 }
+
+class VehicleUpdate {
+  final int? id;
+  final String? vehicleType;
+  final String? plate;
+  final String? brand;
+  final String? model;
+  final int? year;
+  final String? photoUrl;
+
+  VehicleUpdate({
+    this.id,
+    this.vehicleType,
+    this.plate,
+    this.brand,
+    this.model,
+    this.year,
+    this.photoUrl,
+  });
+}

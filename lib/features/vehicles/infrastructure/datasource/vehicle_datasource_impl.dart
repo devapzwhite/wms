@@ -13,6 +13,14 @@ class VehicleDatasourceImpl extends VehiclesDatasource {
   VehicleDatasourceImpl({required this.ref});
 
   final dio = Dio(BaseOptions(baseUrl: '${dotenv.get('API_URL')}/vehicles'));
+  Map<String, dynamic>? getHeaders() {
+    final Map<String, dynamic>? headers = {
+      'Authorization':
+          'Bearer ${ref.read(authProvider).userSession!.token.accessToken}',
+    };
+    return headers;
+  }
+
   @override
   Future<List<Vehicle>> getVehicles() async {
     try {
@@ -75,9 +83,25 @@ class VehicleDatasourceImpl extends VehiclesDatasource {
   }
 
   @override
-  Future<Vehicle> getVehicleById(int id) {
-    // TODO: implement getVehicleById
-    throw UnimplementedError();
+  Future<Vehicle> getVehicleById(int id) async {
+    try {
+      final response = await dio.get(
+        '/searchById/$id',
+        options: Options(headers: getHeaders()),
+      );
+      final Vehicle vehicle = VehicleMapper.dataToVehicleEntity(response.data);
+      return vehicle;
+    } on DioException catch (e) {
+      print(e.response!.statusCode);
+      if (e.response!.statusCode == 401) {
+        throw VehicleErrors(message: 'token expirado');
+      }
+      throw VehicleErrors(
+        message: e.message ?? 'error en dio desconocido jeje',
+      );
+    } catch (e) {
+      throw VehicleErrors(message: 'error desconocido');
+    }
   }
 
   @override
@@ -87,8 +111,24 @@ class VehicleDatasourceImpl extends VehiclesDatasource {
   }
 
   @override
-  Future<void> updateVehicle(int id, Vehicle vehicle) {
-    // TODO: implement updateVehicle
-    throw UnimplementedError();
+  Future<void> updateVehicle(VehicleUpdate vehicle) async {
+    try {
+      final data = VehicleMapper.vehiculoUpdateToData(vehicle);
+      await dio.put(
+        '/${vehicle.id!}',
+        data: data,
+        options: Options(headers: getHeaders()),
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        throw VehicleErrors(message: 'esta placa existe en otro vehiculo');
+      }
+      if (e.response!.statusCode == 401) {
+        throw VehicleErrors(message: 'token expirado');
+      }
+      throw VehicleErrors(message: 'error no controlado en dio');
+    } catch (e) {
+      throw VehicleErrors(message: 'error desconocido');
+    }
   }
 }

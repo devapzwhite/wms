@@ -18,6 +18,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
     ref
         .read(customerDetailNotifierProvider.notifier)
         .loadDetailsCustomer(widget.idCustomer);
@@ -155,10 +159,11 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                                 );
                               },
                               leading: IconButton(
-                                onPressed: () {
-                                  context.push(
+                                onPressed: () async {
+                                  await context.push(
                                     '/vehicles/updatevehicle/${vehicle.id}',
                                   );
+                                  if (mounted) _loadData();
                                 },
                                 icon: Icon(Icons.edit_document),
                               ),

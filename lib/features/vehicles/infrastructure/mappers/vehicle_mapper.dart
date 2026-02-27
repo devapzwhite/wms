@@ -25,6 +25,17 @@ class VehicleMapper {
         "year": vehicle.year,
       });
 
+  static Map<String, dynamic> vehiculoUpdateToData(VehicleUpdate vehicle) {
+    final Map<String, dynamic> map = {};
+    if (vehicle.plate != null) map['plate'] = vehicle.plate;
+    if (vehicle.vehicleType != null) map['vehicle_type'] = vehicle.vehicleType;
+    if (vehicle.brand != null) map['brand'] = vehicle.brand;
+    if (vehicle.model != null) map['model'] = vehicle.model;
+    if (vehicle.year != null) map['year'] = vehicle.year;
+    if (vehicle.photoUrl != null) map['photo_url'] = vehicle.photoUrl;
+    return map;
+  }
+
   static TipoVehiculo textToTipoVehiculo(String type) {
     switch (type) {
       case "CAR":

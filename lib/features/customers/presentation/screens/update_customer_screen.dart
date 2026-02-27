@@ -217,7 +217,7 @@ class _UpdateCustomerScreenState extends ConsumerState<UpdateCustomerScreen> {
                               FilledButton.tonal(
                                 style: ButtonStyle(
                                   backgroundColor: WidgetStateProperty.all(
-                                    Colors.red,
+                                    Colors.red.shade700,
                                   ),
                                   foregroundColor: WidgetStateProperty.all(
                                     Colors.white,

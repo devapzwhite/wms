@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:formz/formz.dart';
 import 'package:wms/domain/entities/entities.dart';
@@ -27,13 +28,11 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
       isSubmited: false,
       errorMessage: '',
     );
-    print('campo cambiado 1');
   }
 
   void onTypeChanged(String? value) {
     final tipo = value;
     state = state.copyWith(tipo: tipo);
-    print('campo cambiado 2');
   }
 
   void onPlateChanged(String value) {
@@ -42,8 +41,6 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
       placa: placa,
       isValid: Formz.validate([placa, state.marca, state.modelo]),
     );
-
-    print('campo cambiado 3');
   }
 
   void onBrandChanged(String value) {
@@ -52,7 +49,6 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
       marca: marca,
       isValid: Formz.validate([state.placa, marca, state.modelo]),
     );
-    print('campo cambiado 4');
   }
 
   void onModelChanged(String value) {
@@ -61,13 +57,11 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
       modelo: modelo,
       isValid: Formz.validate([state.placa, state.marca, modelo]),
     );
-    print('campo cambiado 5');
   }
 
   void onYearChanged(String value) {
     final anio = value;
     state = state.copyWith(anio: anio);
-    print('campo cambiado 6');
   }
 
   void onSubmit() async {
@@ -94,8 +88,36 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
     }
   }
 
+  void onUpdateVehicle(int idVehicle) async {
+    final repository = ref.read(vehicleRepositoryProvider);
+    final vehicleDataToUpdate = _prepareData(idVehicle);
+    try {
+      await repository.updateVehicle(vehicleDataToUpdate);
+      if (!ref.mounted) return;
+      state = state.copyWith(isSubmited: true);
+    } on VehicleErrors catch (e) {
+      if (!ref.mounted) return;
+      state = state.copyWith(isSubmited: true, errorMessage: e.message);
+      return;
+    } catch (e) {
+      debugPrint(e.toString());
+      return;
+    }
+  }
+
+  VehicleUpdate _prepareData(int id) {
+    final VehicleUpdate vehicle = VehicleUpdate(
+      id: id,
+      vehicleType: state.tipo == '' ? null : state.tipo,
+      plate: state.placa.isPure ? null : state.placa.value,
+      brand: state.marca.isPure ? null : state.marca.value,
+      model: state.modelo.isPure ? null : state.modelo.value,
+    );
+    return vehicle;
+  }
+
   void clearErrors() {
-    state = state.copyWith(errorMessage: "");
+    state = state.copyWith(isSubmited: false, errorMessage: "");
   }
 
   bool _validate() {
@@ -104,7 +126,7 @@ class FormAddVehicleNotifier extends Notifier<FormAddVehicleState> {
       marca: BasicStringInput.dirty(value: state.marca.value),
       modelo: BasicStringInput.dirty(value: state.modelo.value),
     );
-    if (Formz.validate([state.marca, state.marca, state.modelo])) {
+    if (Formz.validate([state.placa, state.marca, state.modelo])) {
       if (state.clientId != 0 && state.tipo != '') {
         return true;
       }

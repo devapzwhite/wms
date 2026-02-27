@@ -33,7 +33,6 @@ class CustomerNotifier extends Notifier<CustomerState> {
   }
 
   Future<Customer?> getCustomerToUpdate(int id) async {
-    print('rebuild!!');
     final customer = state.customers.cast<Customer?>().firstWhere(
       (customer) => customer?.id == id,
       orElse: () => null,

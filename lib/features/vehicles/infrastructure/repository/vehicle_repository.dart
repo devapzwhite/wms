@@ -32,7 +32,7 @@ class VehicleRepositoryImpl extends VehiclesRepository {
   }
 
   @override
-  Future<void> updateVehicle(int id, Vehicle vehicle) {
-    return vehiclesDatasource.updateVehicle(id, vehicle);
+  Future<void> updateVehicle(VehicleUpdate vehicle) {
+    return vehiclesDatasource.updateVehicle(vehicle);
   }
 }
