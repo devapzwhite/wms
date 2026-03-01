@@ -24,7 +24,7 @@ class AuthDatasourceImpl extends AuthDatasource {
         data: FormData.fromMap({'username': username, 'password': password}),
       );
       if (response.statusCode == 200) {
-        final data = UserSessionMapper.UserSessionToEntity(response.data);
+        final data = UserSessionMapper.userSessionToEntity(response.data);
         return data;
       } else {
         throw Exception("Invalid credentials");

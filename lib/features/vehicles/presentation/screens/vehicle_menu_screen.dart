@@ -25,12 +25,10 @@ class _VehicleMenuScreenState extends ConsumerState<VehicleMenuScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final vehiclesProvider = ref.watch(vehiclesNotifierProvider);
     ref.listen(formAddVehicleNotifierProvider, (previous, next) {
       if (!next.isSubmited) return;
       if (next.errorMessage != '') return;
-      print('registrado!');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Vehiculo registrado!')));

@@ -70,9 +70,6 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen> {
       // await Future.delayed(Duration(milliseconds: 800));
       final userSession = await _storage.getUserSession();
       //para controlar el tiempo de expiracion del token, se puede usar el siguiente codigo
-      print(
-        'token: ${userSession?.token.accessToken} expiresAt: ${userSession?.token.expiresAt}',
-      );
       if (userSession != null) {
         hasValidToken = DateTime.now().isBefore(userSession.token.expiresAt);
         if (hasValidToken) {
