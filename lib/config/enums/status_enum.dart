@@ -15,3 +15,13 @@ enum WorkStatus {
 
   const WorkStatus(this.label, this.nombre);
 }
+
+enum WorkOrderItemType {
+  diagnosis('DIAGNOSIS', 'diagnostico'),
+  labor('LABOR', 'mano de obra'),
+  part('PART', 'pieza');
+
+  final String label;
+  final String nombre;
+  const WorkOrderItemType(this.label, this.nombre);
+}

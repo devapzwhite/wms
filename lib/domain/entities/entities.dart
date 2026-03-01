@@ -5,3 +5,5 @@ export 'menu_item_entity.dart';
 export 'customer_entity.dart';
 export 'vehicle_entity.dart';
 export 'workshop_entity.dart';
+export 'work_order_item_entity.dart';
+export 'workorder_entity.dart';

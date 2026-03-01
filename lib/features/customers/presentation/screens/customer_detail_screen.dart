@@ -125,8 +125,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                     SizedBox(height: 10),
                     ListView.builder(
                       shrinkWrap: true,
-                      physics:
-                          NeverScrollableScrollPhysics(), // ← porque ya tienes SingleChildScrollView
+                      physics: NeverScrollableScrollPhysics(),
                       itemCount: customerData.vehicles.length,
                       itemBuilder: (context, index) {
                         final vehicle = customerData.vehicles[index];
@@ -140,7 +139,52 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                                 ),
                               ],
                             ),
-                            onTap: () async {
+                            onTap: () {
+                              context.push(
+                                '/workorders/detailWorkorder/${vehicle.id}',
+                              );
+                            },
+                            leading: IconButton(
+                              onPressed: () async {
+                                await context.push(
+                                  '/vehicles/updatevehicle/${vehicle.id}',
+                                );
+                                if (mounted) _loadData();
+                              },
+                              icon: Icon(Icons.edit_document),
+                            ),
+                            trailing: IconButton(
+                              onPressed: () {
+                                context.push(
+                                  '/workorders/addworkorder/${vehicle.id}',
+                                );
+                              },
+                              icon: Icon(Icons.note_add),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          print('navegando con idCustomer: ${widget.idCustomer}');
+          await context.push('/vehicles/addvehicle/${widget.idCustomer}');
+          if (mounted) _loadData();
+        },
+        child: Icon(Icons.commute_rounded),
+      ),
+    );
+  }
+}
+
+
+
+/*
+onTap: () async {
                               await showDialog(
                                 context: context,
                                 builder: (context) {
@@ -172,39 +216,4 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                                 },
                               );
                             },
-                            leading: IconButton(
-                              onPressed: () async {
-                                await context.push(
-                                  '/vehicles/updatevehicle/${vehicle.id}',
-                                );
-                                if (mounted) _loadData();
-                              },
-                              icon: Icon(Icons.edit_document),
-                            ),
-                            trailing: IconButton(
-                              onPressed: () {
-                                context.push(
-                                  '/workorders/addorder/${vehicle.id}',
-                                );
-                              },
-                              icon: Icon(Icons.note_add),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          print('navegando con idCustomer: ${widget.idCustomer}');
-          await context.push('/vehicles/addvehicle/${widget.idCustomer}');
-          if (mounted) _loadData();
-        },
-        child: Icon(Icons.commute_rounded),
-      ),
-    );
-  }
-}
+*/

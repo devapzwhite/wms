@@ -4,6 +4,7 @@ import 'package:wms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:wms/features/auth/presentation/screens/screens_auth.dart';
 import 'package:wms/features/home/presentation/screens/home_screen.dart';
 import 'package:wms/features/vehicles/presentation/screens/vehicle_screens.dart';
+import 'package:wms/features/workorders/presentation/screens/detail_work_order_screen.dart';
 import 'package:wms/features/workorders/presentation/screens/workorders_screens.dart';
 import 'package:wms/presentation/screens/shared_screens.dart';
 import '../../features/customers/presentation/screens/customer_screens.dart';
@@ -97,8 +98,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => MenuWorkordersScreen(),
         routes: [
           GoRoute(
-            path: 'addworkorder',
-            builder: (context, state) => CreateWorkorderScreen(),
+            path: 'addworkorder/:id_vehicle',
+            builder: (context, state) {
+              final idVehiculo = state.pathParameters['id_vehicle']!;
+              return CreateWorkorderScreen(
+                idVehiculo: int.tryParse(idVehiculo)!,
+              );
+            },
+          ),
+          GoRoute(
+            path: 'detailWorkorder/:id_vehicle',
+            builder: (context, state) {
+              final idVehiculo = state.pathParameters['id_vehicle']!;
+              return WorkOrderDetailsScreen(
+                idVehiculo: int.tryParse(idVehiculo)!,
+              );
+            },
           ),
         ],
       ),
