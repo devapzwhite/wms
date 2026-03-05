@@ -103,7 +103,6 @@ class CustomersDatasourceImpl extends CustomersDatasource {
       );
       return CustomerMappers.dataToCustomerEntity(response.data);
     } on DioException catch (e) {
-      print('${customer.documentId} - ${customer.name} - ${customer.lastName}');
       if (e.response?.statusCode == 401) {
         throw CustomerErrors(message: 'token expirado: ${e.message}');
       }

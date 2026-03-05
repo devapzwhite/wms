@@ -130,4 +130,27 @@ class VehicleDatasourceImpl extends VehiclesDatasource {
       throw VehicleErrors(message: 'error desconocido');
     }
   }
+
+  @override
+  Future<Vehicle> getVehicleDetailById(int id) async {
+    try {
+      final response = await dio.get(
+        '$id/workorders',
+        options: Options(headers: getHeaders()),
+      );
+      final Vehicle vehicle = VehicleMapper.dataToVehicleDetailEntity(
+        response.data,
+      );
+      return vehicle;
+    } on DioException catch (e) {
+      if (e.response!.statusCode == 401) {
+        throw VehicleErrors(message: 'token expirado');
+      }
+      throw VehicleErrors(
+        message: e.message ?? 'error en dio desconocido jeje',
+      );
+    } catch (e) {
+      throw VehicleErrors(message: 'error desconocido');
+    }
+  }
 }

@@ -6,4 +6,5 @@ abstract class VehiclesDatasource {
   Future<Vehicle> getVehicleById(int id);
   Future<void> updateVehicle(VehicleUpdate vehicle);
   Future<void> getVehicleByPlate(String plate);
+  Future<Vehicle> getVehicleDetailById(int id);
 }

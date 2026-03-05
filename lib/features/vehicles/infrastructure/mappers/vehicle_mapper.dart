@@ -58,4 +58,53 @@ class VehicleMapper {
         return TipoVehiculo.car;
     }
   }
+
+  static Vehicle dataToVehicleDetailEntity(Map<String, dynamic> data) {
+    final customerData = data['customer'] as Map<String, dynamic>;
+    final workOrdersData = data['orders'] as List<dynamic>;
+    final List<WorkOrder> workOrders = <WorkOrder>[];
+    final Customer customer = Customer(
+      id: customerData['id'],
+      shopId: customerData['shop_id'],
+      documentId: customerData['document_id'],
+      name: customerData['name'],
+      lastName: customerData['last_name'],
+      phone: customerData['phone'],
+      email: customerData['email'],
+      address: customerData['address'],
+      createAt: customerData['created_at'],
+    );
+
+    for (final order in workOrdersData) {
+      workOrders.add(
+        WorkOrder(
+          id: order['id'],
+          status: order['status'],
+          vehicleId: order['vehicle_id'],
+          notes: order['notes'],
+          shopId: order['shop_id'],
+          createdBy: order['created_by_user_id'],
+          checkIn: order['check_in_at'],
+          checkOut: order['check_out_at'],
+          createdAt: order['created_at'],
+        ),
+      );
+    }
+    final result = Vehicle(
+      customerId: data['customer_id'],
+      vehicleType: data['vehicle_type'],
+      plate: data['plate'],
+      brand: data['brand'],
+      model: data['model'],
+      year: data['year'],
+      photoUrl: data['photo_url'],
+      id: data['id'],
+      shopId: data['shop_id'],
+      createAt: data['created_at'],
+      customer: customer,
+      orders: workOrders,
+    );
+
+    return result;
+  }
 }

@@ -1,9 +1,7 @@
-import 'package:wms/config/enums/status_enum.dart';
-
 class WorkOrderItem {
   final int? id;
-  final int workOrder;
-  final WorkOrderItemType itenType;
+  final int? workOrderId;
+  final String itemType;
   final String description;
   final int? quantity;
   final double? unitCost;
@@ -13,8 +11,8 @@ class WorkOrderItem {
 
   WorkOrderItem({
     this.id,
-    required this.workOrder,
-    required this.itenType,
+    this.workOrderId,
+    required this.itemType,
     required this.description,
     this.quantity,
     this.unitCost,

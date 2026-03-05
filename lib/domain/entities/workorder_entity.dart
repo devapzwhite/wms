@@ -1,4 +1,5 @@
 import 'package:wms/config/enums/status_enum.dart';
+import 'package:wms/domain/entities/entities.dart';
 
 class WorkOrder {
   final int? id;
@@ -28,4 +29,11 @@ class WorkOrder {
     this.notes,
     this.createdAt,
   });
+}
+
+class WorkOrderDetail {
+  final WorkOrder workorder;
+  final List<WorkOrderItem> items;
+
+  WorkOrderDetail({required this.workorder, required this.items});
 }

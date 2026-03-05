@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wms/features/customers/presentation/providers/customer_detail_provider.dart';
+import 'package:wms/features/workorders/presentation/providers/work_order_providers.dart';
 import 'package:wms/presentation/widgets/widgets.dart';
 
 class CustomerDetailScreen extends ConsumerStatefulWidget {
@@ -35,9 +36,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     final customerData = ref.watch(customerDetailNotifierProvider);
     final colors = Theme.of(context).colorScheme;
     final textStyle = Theme.of(context).textTheme;
-    print(
-      'BUILD ejecutado - vehiculos: ${customerData.vehicles.length} - isLoading: ${customerData.isLoading}',
-    );
     return Scaffold(
       appBar: AppBarCustom(title: 'Detalle de cliente'),
       body: customerData.isLoading
@@ -154,9 +152,13 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                               icon: Icon(Icons.edit_document),
                             ),
                             trailing: IconButton(
-                              onPressed: () {
-                                context.push(
+                              onPressed: () async {
+                                await context.push(
                                   '/workorders/addworkorder/${vehicle.id}',
+                                );
+                                //TODO: metodo para invalidar el state workOrderFormProvider
+                                ref.invalidate(
+                                  workOrderFormProvider(vehicle.id!),
                                 );
                               },
                               icon: Icon(Icons.note_add),
@@ -180,40 +182,3 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     );
   }
 }
-
-
-
-/*
-onTap: () async {
-                              await showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return SimpleDialog(
-                                    title: Text(
-                                      '${vehicle.plate.toUpperCase()} ',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    children: [
-                                      Text(
-                                        vehicle.vehicleType.nombre,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      Text(
-                                        vehicle.brand,
-                                        textAlign: TextAlign.center,
-                                      ),
-
-                                      Text(
-                                        vehicle.model,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      Text(
-                                        vehicle.year.toString(),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-*/

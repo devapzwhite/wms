@@ -1,4 +1,5 @@
 import 'package:wms/config/enums/tipo_vehiculo_enum.dart';
+import 'package:wms/domain/entities/entities.dart';
 
 class Vehicle {
   final int? id;
@@ -11,6 +12,8 @@ class Vehicle {
   final int? year;
   final String? photoUrl;
   final DateTime? createAt;
+  final Customer? customer;
+  final List<WorkOrder> orders;
   Vehicle({
     this.id,
     this.shopId,
@@ -22,6 +25,8 @@ class Vehicle {
     this.year,
     this.photoUrl,
     this.createAt,
+    this.customer,
+    this.orders = const <WorkOrder>[],
   });
 }
 
