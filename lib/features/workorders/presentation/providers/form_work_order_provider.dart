@@ -96,6 +96,7 @@ class WorkOrderFormNotifier extends Notifier<FormWorkOrderState> {
   }
 
   void onSubmit() async {
+    state = state.copyWith(onSubmit: true, isLoading: true);
     final isValid = true;
     if (!isValid) return;
     final workOrder = WorkOrder(
@@ -110,11 +111,20 @@ class WorkOrderFormNotifier extends Notifier<FormWorkOrderState> {
         items: state.items,
       );
       await ref.read(workOrderRepositoryProvider).createWorkOrder(detail);
+      if (ref.mounted) {
+        state = state.copyWith(isLoading: false);
+      }
     } on WorkOrderErrors catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.message);
       print('error workOrder ${e.message}');
     } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
       print('error workOrder ${e.toString()}');
     }
+  }
+
+  void clearResults() {
+    state = state.copyWith(errorMessage: '', onSubmit: false, isLoading: false);
   }
 }
 
@@ -135,6 +145,9 @@ class FormWorkOrderState {
   final String? afterPhoto;
   final bool isValid;
   final List<WorkOrderItem> items;
+  final String errorMessage;
+  final bool onSubmit;
+  final bool isLoading;
 
   FormWorkOrderState({
     required this.vehicleId,
@@ -151,6 +164,9 @@ class FormWorkOrderState {
     this.afterPhoto,
     this.isValid = false,
     this.items = const <WorkOrderItem>[],
+    this.errorMessage = '',
+    this.onSubmit = false,
+    this.isLoading = false,
   });
   FormWorkOrderState copyWith({
     int? vehicleId,
@@ -167,6 +183,9 @@ class FormWorkOrderState {
     String? afterPhoto,
     bool? isValid,
     List<WorkOrderItem>? items,
+    String? errorMessage,
+    bool? onSubmit,
+    bool? isLoading,
   }) {
     return FormWorkOrderState(
       vehicleId: vehicleId ?? this.vehicleId,
@@ -183,6 +202,9 @@ class FormWorkOrderState {
       afterPhoto: afterPhoto ?? this.afterPhoto,
       isValid: isValid ?? this.isValid,
       items: items ?? this.items,
+      errorMessage: errorMessage ?? this.errorMessage,
+      onSubmit: onSubmit ?? this.onSubmit,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 }

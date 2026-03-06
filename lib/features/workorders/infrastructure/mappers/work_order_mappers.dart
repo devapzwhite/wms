@@ -43,11 +43,11 @@ class WorkOrderMappers {
       initialDiagnosis: data['initial_diagnosis'],
       notes: data['notes'],
       laborEstimate: double.tryParse(data['labor_estimate']),
-      checkOut: data['check_out_at']
-          ? DateTime.tryParse(data['check_out_at'])
+      checkOut: data['check_out_at'] != null
+          ? DateTime.parse(data['check_out_at'])
           : null,
-      createdAt: data['created_at']
-          ? DateTime.tryParse(data['created_at'])
+      createdAt: data['created_at'] != null
+          ? DateTime.parse(data['created_at'])
           : null,
     );
     final WorkOrderDetail result = WorkOrderDetail(
@@ -60,6 +60,9 @@ class WorkOrderMappers {
             description: item['description'],
             quantity: item['quantity'],
             unitPrice: double.tryParse(item['unit_price']),
+            createdAt: item['created_at'] != null
+                ? DateTime.parse(item['created_at'])
+                : null,
             // unitCost: item['unit_cost'],
             // beforePhoto: item['before_photo'],
             // afterPhoto: item['after_photo'],

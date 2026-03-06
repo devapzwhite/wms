@@ -1,4 +1,5 @@
 import 'package:wms/config/enums/tipo_vehiculo_enum.dart';
+import 'package:wms/config/helpers/mappers.dart';
 import 'package:wms/domain/entities/entities.dart';
 
 class VehicleMapper {
@@ -61,7 +62,7 @@ class VehicleMapper {
 
   static Vehicle dataToVehicleDetailEntity(Map<String, dynamic> data) {
     final customerData = data['customer'] as Map<String, dynamic>;
-    final workOrdersData = data['orders'] as List<dynamic>;
+    final workOrdersData = data['work_orders'] as List<dynamic>;
     final List<WorkOrder> workOrders = <WorkOrder>[];
     final Customer customer = Customer(
       id: customerData['id'],
@@ -72,35 +73,42 @@ class VehicleMapper {
       phone: customerData['phone'],
       email: customerData['email'],
       address: customerData['address'],
-      createAt: customerData['created_at'],
+      createAt: DateTime.parse(customerData['created_at']),
     );
 
     for (final order in workOrdersData) {
       workOrders.add(
         WorkOrder(
           id: order['id'],
-          status: order['status'],
+          status: Mappers.textToWorkOrderStatus(order['status']),
+          initialDiagnosis: order['initial_diagnosis'],
           vehicleId: order['vehicle_id'],
           notes: order['notes'],
           shopId: order['shop_id'],
           createdBy: order['created_by_user_id'],
-          checkIn: order['check_in_at'],
-          checkOut: order['check_out_at'],
-          createdAt: order['created_at'],
+          checkIn: order['check_in_at'] != null
+              ? DateTime.parse(order['check_in_at'])
+              : null,
+          checkOut: order['check_out_at'] != null
+              ? DateTime.parse(order['check_out_at'])
+              : null,
+          createdAt: order['created_at'] != null
+              ? DateTime.parse(order['created_at'])
+              : null,
         ),
       );
     }
     final result = Vehicle(
       customerId: data['customer_id'],
-      vehicleType: data['vehicle_type'],
+      vehicleType: textToTipoVehiculo(data["vehicle_type"]),
       plate: data['plate'],
       brand: data['brand'],
       model: data['model'],
       year: data['year'],
-      photoUrl: data['photo_url'],
+      photoUrl: data['photo_url'] ?? 'no photo',
+      createAt: DateTime.parse(data["created_at"]),
       id: data['id'],
       shopId: data['shop_id'],
-      createAt: data['created_at'],
       customer: customer,
       orders: workOrders,
     );

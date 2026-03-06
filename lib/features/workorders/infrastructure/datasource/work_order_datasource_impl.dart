@@ -27,17 +27,15 @@ class WorkOrderDatasourceImpl extends WorkOrderDatasource {
   Future<WorkOrderDetail> createWorkOrder(WorkOrderDetail workorderData) async {
     final Map<String, dynamic> data =
         WorkOrderMappers.entityWorkOrderDetailsToDataMap(workorderData);
-
-    final response = await dio.post(
-      '/',
-      options: Options(headers: {'Authorization': 'Bearer ${_getToken()}'}),
-      data: data,
-    );
-    final result = WorkOrderMappers.dataMapWorkOrderDetailsToEntityWorkOrder(
-      response.data,
-    );
     try {
-      print('Registro Exitoso!');
+      final response = await dio.post(
+        '/',
+        options: Options(headers: {'Authorization': 'Bearer ${_getToken()}'}),
+        data: data,
+      );
+      final result = WorkOrderMappers.dataMapWorkOrderDetailsToEntityWorkOrder(
+        response.data,
+      );
       return result;
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {

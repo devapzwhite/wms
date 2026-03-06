@@ -135,7 +135,7 @@ class VehicleDatasourceImpl extends VehiclesDatasource {
   Future<Vehicle> getVehicleDetailById(int id) async {
     try {
       final response = await dio.get(
-        '$id/workorders',
+        '/$id/workorders',
         options: Options(headers: getHeaders()),
       );
       final Vehicle vehicle = VehicleMapper.dataToVehicleDetailEntity(

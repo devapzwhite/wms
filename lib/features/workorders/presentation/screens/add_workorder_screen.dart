@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wms/config/enums/status_enum.dart';
 import 'package:wms/config/helpers/mappers.dart';
 import 'package:wms/features/workorders/presentation/providers/work_order_providers.dart';
@@ -21,13 +22,35 @@ class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
     final formWorkOrderNP = ref.read(
       workOrderFormProvider(widget.idVehiculo).notifier,
     );
+    ref.listen(workOrderFormProvider(widget.idVehiculo), (previous, next) {
+      if (!next.onSubmit) return;
+      final wasLoading = previous?.isLoading ?? false;
+      if (wasLoading &&
+          !next.isLoading &&
+          previous!.errorMessage == '' &&
+          next.errorMessage == '') {
+        ref.invalidate(workOrderFormProvider(widget.idVehiculo));
+        // context.go('/vehicles/detailvehicle/${widget.idVehiculo}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Orden Registrado Exitosamente!')),
+        );
+        context.pop();
+      }
+      if (wasLoading && !next.isLoading && next.errorMessage != '') {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.errorMessage)));
+        ref
+            .read(workOrderFormProvider(widget.idVehiculo).notifier)
+            .clearResults();
+      }
+    });
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             floating: true,
-            // title: Text('Datos de la orden'),
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 '${formdata.vehicle?.plate} ${formdata.vehicle?.brand} ${formdata.vehicle?.model}',
@@ -66,9 +89,9 @@ class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
                                   )
                                   .toList(),
 
-                              hintText: 'Seleccione un tipo de vehículo',
+                              hintText: 'Seleccione el estado',
                               onSelected: (value) =>
-                                  formWorkOrderNP.onChangeInitialDiagnosis,
+                                  formWorkOrderNP.onChangeStatus(value!),
                             ),
                           ),
                         ],

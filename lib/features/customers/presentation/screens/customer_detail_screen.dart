@@ -36,6 +36,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     final customerData = ref.watch(customerDetailNotifierProvider);
     final colors = Theme.of(context).colorScheme;
     final textStyle = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBarCustom(title: 'Detalle de cliente'),
       body: customerData.isLoading
@@ -139,7 +140,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                             ),
                             onTap: () {
                               context.push(
-                                '/workorders/detailWorkorder/${vehicle.id}',
+                                '/vehicles/detailvehicle/${vehicle.id}',
                               );
                             },
                             leading: IconButton(
@@ -156,7 +157,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                                 await context.push(
                                   '/workorders/addworkorder/${vehicle.id}',
                                 );
-                                //TODO: metodo para invalidar el state workOrderFormProvider
                                 ref.invalidate(
                                   workOrderFormProvider(vehicle.id!),
                                 );

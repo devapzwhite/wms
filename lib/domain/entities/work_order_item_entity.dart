@@ -8,6 +8,7 @@ class WorkOrderItem {
   final double? unitPrice;
   final String? beforePhoto;
   final String? afterPhoto;
+  final DateTime? createdAt;
 
   WorkOrderItem({
     this.id,
@@ -19,5 +20,6 @@ class WorkOrderItem {
     this.unitPrice,
     this.beforePhoto,
     this.afterPhoto,
+    this.createdAt,
   });
 }
