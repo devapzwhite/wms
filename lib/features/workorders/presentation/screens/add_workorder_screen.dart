@@ -170,6 +170,7 @@ class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               final item = formdata.items[index];
+              final totalPrice = item.unitPrice! * item.quantity!;
               return Dismissible(
                 key: ValueKey(item.hashCode),
                 direction: DismissDirection.endToStart,
@@ -191,6 +192,7 @@ class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
                       item.description,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    trailing: Text('${totalPrice}CLP '),
                   ),
                 ),
               );

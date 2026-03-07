@@ -129,12 +129,92 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                       itemBuilder: (context, index) {
                         final vehicle = customerData.vehicles[index];
                         return Card(
+                          clipBehavior: Clip.antiAlias,
                           child: ListTile(
+                            minVerticalPadding: 0,
+                            contentPadding: EdgeInsets.all(0),
                             title: Column(
                               children: [
                                 Text(vehicle.brand),
+                                SizedBox(height: 5),
                                 Text(
                                   '${vehicle.model} ( ${vehicle.year.toString()} )',
+                                ),
+                                SizedBox(height: 10),
+
+                                SizedBox(height: 0, child: Divider()),
+                                Row(
+                                  spacing: 0,
+                                  children: [
+                                    Expanded(
+                                      child: ClipRRect(
+                                        clipBehavior: Clip.antiAlias,
+                                        borderRadius: BorderRadiusGeometry.only(
+                                          bottomLeft: Radius.circular(10),
+                                        ),
+                                        child: InkWell(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.only(
+                                                bottomLeft: Radius.circular(10),
+                                              ),
+                                            ),
+                                            height: 46,
+                                            child: Center(
+                                              child: Text(
+                                                'Editar vehículo',
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ),
+                                          onTap: () async {
+                                            await context.push(
+                                              '/vehicles/updatevehicle/${vehicle.id}',
+                                            );
+                                            if (mounted) _loadData();
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 0,
+                                      height:
+                                          46, // mismo alto que tus “botones”
+                                      child: VerticalDivider(
+                                        color: Colors.grey,
+                                        thickness: 1,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () async {
+                                          await context.push(
+                                            '/workorders/addworkorder/${vehicle.id}',
+                                          );
+                                          ref.invalidate(
+                                            workOrderFormProvider(vehicle.id!),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                              bottomRight: Radius.circular(10),
+                                            ),
+                                            color: colors.primary.withOpacity(
+                                              0.12,
+                                            ),
+                                          ),
+                                          height: 46,
+                                          child: Center(
+                                            child: Text(
+                                              'Crear Orden',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -143,26 +223,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                                 '/vehicles/detailvehicle/${vehicle.id}',
                               );
                             },
-                            leading: IconButton(
-                              onPressed: () async {
-                                await context.push(
-                                  '/vehicles/updatevehicle/${vehicle.id}',
-                                );
-                                if (mounted) _loadData();
-                              },
-                              icon: Icon(Icons.edit_document),
-                            ),
-                            trailing: IconButton(
-                              onPressed: () async {
-                                await context.push(
-                                  '/workorders/addworkorder/${vehicle.id}',
-                                );
-                                ref.invalidate(
-                                  workOrderFormProvider(vehicle.id!),
-                                );
-                              },
-                              icon: Icon(Icons.note_add),
-                            ),
                           ),
                         );
                       },

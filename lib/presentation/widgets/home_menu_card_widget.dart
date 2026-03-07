@@ -24,7 +24,13 @@ class HomeMenuCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final size = MediaQuery.of(context).size;
     return InkWell(
-      child: Container(
+      splashColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+      highlightColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+      onTap: () {
+        context.push(menuItem.route);
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Ink(
         decoration: BoxDecoration(
           color: colors.surfaceContainer,
           borderRadius: BorderRadius.circular(20),
@@ -53,9 +59,6 @@ class HomeMenuCard extends StatelessWidget {
           ],
         ),
       ),
-      onTap: () {
-        context.push(menuItem.route);
-      },
     );
   }
 }

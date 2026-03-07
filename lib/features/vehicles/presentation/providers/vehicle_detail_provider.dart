@@ -40,7 +40,11 @@ class VehicleDetailsNotifier extends Notifier<VehicleDetailState> {
       );
 
       if (!ref.mounted) return;
-
+      if (vehicleDetails.orders.isNotEmpty) {
+        vehicleDetails.orders.sort(
+          (a, b) => b.createdAt!.compareTo(a.createdAt!),
+        );
+      }
       state = state.copyWith(
         vehicle: vehicle,
         customer: vehicleDetails.customer,

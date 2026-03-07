@@ -83,6 +83,7 @@ class VehicleMapper {
           status: Mappers.textToWorkOrderStatus(order['status']),
           initialDiagnosis: order['initial_diagnosis'],
           vehicleId: order['vehicle_id'],
+          laborEstimate: double.parse(order['labor_estimate']),
           notes: order['notes'],
           shopId: order['shop_id'],
           createdBy: order['created_by_user_id'],
