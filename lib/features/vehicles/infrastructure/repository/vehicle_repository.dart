@@ -27,7 +27,7 @@ class VehicleRepositoryImpl extends VehiclesRepository {
   }
 
   @override
-  Future<void> getVehicleByPlate(String plate) {
+  Future<Vehicle> getVehicleByPlate(String plate) {
     return vehiclesDatasource.getVehicleByPlate(plate);
   }
 

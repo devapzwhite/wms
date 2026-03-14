@@ -103,10 +103,28 @@ class VehicleDatasourceImpl extends VehiclesDatasource {
     }
   }
 
+  // [IMPLEMENTED] - getVehicleByPlate - Issue #TODO-VEHICLES
   @override
-  Future<void> getVehicleByPlate(String plate) {
-    // TODO: implement getVehicleByPlate
-    throw UnimplementedError();
+  Future<Vehicle> getVehicleByPlate(String plate) async {
+    try {
+      final response = await dio.get(
+        '/searchByPlate/$plate',
+        options: Options(headers: getHeaders()),
+      );
+      return VehicleMapper.dataToVehicleEntity(response.data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw VehicleErrors(message: 'Vehículo no encontrado');
+      }
+      if (e.response?.statusCode == 401) {
+        throw VehicleErrors(message: 'Token expirado');
+      }
+      throw VehicleErrors(
+        message: e.message ?? 'Error al buscar vehículo por placa',
+      );
+    } catch (e) {
+      throw VehicleErrors(message: 'error no controlado ${e.toString()}');
+    }
   }
 
   @override

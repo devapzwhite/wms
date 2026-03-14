@@ -5,6 +5,6 @@ abstract class VehiclesRepository {
   Future<Vehicle> addVehicle(Vehicle vehicle);
   Future<Vehicle> getVehicleById(int id);
   Future<void> updateVehicle(VehicleUpdate vehicle);
-  Future<void> getVehicleByPlate(String plate);
+  Future<Vehicle> getVehicleByPlate(String plate);
   Future<Vehicle> getVehicleDetailById(int id);
 }

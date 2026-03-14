@@ -27,20 +27,50 @@ class CustomersDatasourceImpl extends CustomersDatasource {
 
   @override
   Future<void> deleteUser(int id) {
-    // TODO: implement deleteUser
+    // TODO: No endpoint available in backend documentation
     throw UnimplementedError();
   }
 
+  // [IMPLEMENTED] - getCustomer - Issue #TODO-CUSTOMERS
   @override
-  Future<Customer> getCustomer(int id) {
-    // TODO: implement getCustomer
-    throw UnimplementedError();
+  Future<Customer> getCustomer(int id) async {
+    try {
+      final response = await dio.get(
+        '/by_id/$id',
+        options: Options(headers: {'Authorization': 'Bearer ${_getToken()}'}),
+      );
+      return CustomerMappers.dataToCustomerEntity(response.data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw CustomerErrors(message: 'Cliente no encontrado');
+      }
+      throw CustomerErrors(
+        message: ' ${e.response?.statusCode ?? 'no code'} - ${e.message.toString()}',
+      );
+    } catch (e) {
+      throw CustomerErrors(message: 'error no controlado ${e.toString()}');
+    }
   }
 
+  // [IMPLEMENTED] - getCustomerByDocumentId - Issue #TODO-CUSTOMERS
   @override
-  Future<Customer> getCustomerByDocumentId(int shopId, String documentId) {
-    // TODO: implement getCustomerByDocumentId
-    throw UnimplementedError();
+  Future<Customer> getCustomerByDocumentId(int shopId, String documentId) async {
+    try {
+      final response = await dio.get(
+        '/by_document/$documentId',
+        options: Options(headers: {'Authorization': 'Bearer ${_getToken()}'}),
+      );
+      return CustomerMappers.dataToCustomerEntity(response.data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw CustomerErrors(message: 'Cliente no encontrado');
+      }
+      throw CustomerErrors(
+        message: ' ${e.response?.statusCode ?? 'no code'} - ${e.message.toString()}',
+      );
+    } catch (e) {
+      throw CustomerErrors(message: 'error no controlado ${e.toString()}');
+    }
   }
 
   @override

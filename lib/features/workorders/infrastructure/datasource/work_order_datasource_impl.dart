@@ -49,19 +49,38 @@ class WorkOrderDatasourceImpl extends WorkOrderDatasource {
 
   @override
   Future<List<WorkOrderItem>> getItemsFromWorkOrderId(int id) {
-    // TODO: implement getItemsFromWorkOrderId
+    // TODO: No endpoint available in backend documentation
     throw UnimplementedError();
   }
 
   @override
   Future<List<WorkOrder>> getListWorkOrders(int idVehicle) {
-    // TODO: implement getListWorkOrders
+    // TODO: No endpoint available in backend documentation
     throw UnimplementedError();
   }
 
+  // [IMPLEMENTED] - getWorkOrderDetail - Issue #TODO-WORKORDERS
   @override
-  Future<WorkOrderDetail> getWorkOrderDetail(int id) {
-    // TODO: implement getWorkOrderDetail
-    throw UnimplementedError();
+  Future<WorkOrderDetail> getWorkOrderDetail(int id) async {
+    try {
+      final response = await dio.get(
+        '/',
+        queryParameters: {'id': id},
+        options: Options(headers: {'Authorization': 'Bearer ${_getToken()}'}),
+      );
+      return WorkOrderMappers.dataMapWorkOrderDetailsToEntityWorkOrder(
+        response.data,
+      );
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw WorkOrderErrors(message: 'Orden de trabajo no encontrada');
+      }
+      if (e.response?.statusCode == 401) {
+        throw WorkOrderErrors(message: 'Token expirado');
+      }
+      throw WorkOrderErrors(message: 'error en dio desconocido ${e.message}');
+    } catch (e) {
+      throw WorkOrderErrors(message: 'error desconocido ${e.toString()}');
+    }
   }
 }
