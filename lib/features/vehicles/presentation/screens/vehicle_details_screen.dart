@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wms/features/vehicles/presentation/providers/vehicle_detail_provider.dart';
 
 class VehicleDetailsScreen extends ConsumerStatefulWidget {
@@ -169,7 +170,11 @@ class _CreateWorkorderScreenState extends ConsumerState<VehicleDetailsScreen> {
                                   ),
                                 ),
                               ),
-                              onTap: () async {},
+                              onTap: () async {
+                                await context.push(
+                                  '/workorders/updateworkorder/${workOrder.id}',
+                                );
+                              },
                             ),
                           ),
                         ),

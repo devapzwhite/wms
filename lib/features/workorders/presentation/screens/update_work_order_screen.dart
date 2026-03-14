@@ -2,61 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wms/config/enums/status_enum.dart';
+import 'package:wms/config/helpers/mappers.dart';
 import 'package:wms/features/workorders/presentation/providers/work_order_providers.dart';
 import 'package:wms/features/workorders/presentation/widgets/work_orders_widgets.dart';
 
-class CreateWorkorderScreen extends ConsumerStatefulWidget {
-  final int idVehiculo;
-  const CreateWorkorderScreen({super.key, required this.idVehiculo});
+class UpdateWorkOrderScreen extends ConsumerStatefulWidget {
+  final int idWorkOrder;
+  const UpdateWorkOrderScreen({super.key, required this.idWorkOrder});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
       _CreateWorkorderScreenState();
 }
 
-class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
-  final TextEditingController _diagCtrl = TextEditingController(text: '');
-  final TextEditingController _obsCtrl = TextEditingController(text: '');
-
-  @override
-  void dispose() {
-    _obsCtrl.dispose();
-    _diagCtrl.dispose();
-    super.dispose();
-  }
-
+class _CreateWorkorderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
   @override
   Widget build(BuildContext context) {
-    final formdata = ref.watch(
-      workOrderFormProvider(widget.idVehiculo),
-    ); //TODO: si no hay formdata que retorne
-    final formWorkOrderNP = ref.read(
-      workOrderFormProvider(widget.idVehiculo).notifier,
-    );
-    ref.listen(workOrderFormProvider(widget.idVehiculo), (previous, next) {
-      if (!next.onSubmit) return;
-      final wasLoading = previous?.isLoading ?? false;
-      if (wasLoading &&
-          !next.isLoading &&
-          previous!.errorMessage == '' &&
-          next.errorMessage == '') {
-        ref.invalidate(workOrderFormProvider(widget.idVehiculo));
-        // context.go('/vehicles/detailvehicle/${widget.idVehiculo}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Orden Registrado Exitosamente!')),
-        );
-        context.pop();
-      }
-      if (wasLoading && !next.isLoading && next.errorMessage != '') {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(next.errorMessage)));
-        ref
-            .read(workOrderFormProvider(widget.idVehiculo).notifier)
-            .clearResults();
-      }
-    });
-
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -64,7 +25,7 @@ class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
             floating: true,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
-                '${formdata.vehicle?.plate} ${formdata.vehicle?.brand} ${formdata.vehicle?.model}',
+                'Datos del vehiculo',
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
@@ -88,7 +49,7 @@ class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
                           Flexible(child: Text('Estado de orden:')),
                           Flexible(
                             child: DropdownMenuFormField(
-                              initialSelection: formdata.status,
+                              initialSelection: 'RECIBIDO',
                               expandedInsets: EdgeInsets.all(12),
                               dropdownMenuEntries: WorkStatus.values
                                   .map(
@@ -100,39 +61,31 @@ class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
                                   .toList(),
 
                               hintText: 'Seleccione el estado',
-                              onSelected: (value) =>
-                                  formWorkOrderNP.onChangeStatus(value!),
+                              onSelected: (value) {},
                             ),
                           ),
                         ],
                       ),
                       CustomLargeTextFormField(
-                        controller: _diagCtrl,
                         minLines: 3,
                         maxLines: 6,
                         borderRadius: 10,
                         label: 'Diagnostico inicial:',
-                        onChanged: formWorkOrderNP.onChangeInitialDiagnosis,
+                        onChanged: (value) {},
                       ),
                       CustomLargeTextFormField(
-                        controller: _obsCtrl,
                         minLines: 3,
                         maxLines: 6,
                         borderRadius: 10,
                         label: 'Observaciones:',
-                        onChanged: formWorkOrderNP.onChangeNotes,
+                        onChanged: (value) {},
                       ),
                       // Botones
                       Row(
                         children: [
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () {
-                                _diagCtrl.clear();
-                                _obsCtrl.clear();
-                                formWorkOrderNP.onChangeInitialDiagnosis('');
-                                formWorkOrderNP.onChangeNotes('');
-                              },
+                              onPressed: () {},
                               icon: const Icon(Icons.refresh, size: 18),
                               label: const Text('Limpiar'),
                               style: ElevatedButton.styleFrom(
@@ -148,10 +101,7 @@ class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () {
-                                //TODO: registrar
-                                formWorkOrderNP.onSubmit();
-                              },
+                              onPressed: () {},
                               icon: const Icon(Icons.save, size: 18),
                               label: const Text('Registrar Orden'),
                               style: ElevatedButton.styleFrom(
@@ -173,28 +123,28 @@ class _CreateWorkorderScreenState extends ConsumerState<CreateWorkorderScreen> {
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              final item = formdata.items[index];
+          // SliverList(
+          //   delegate: SliverChildBuilderDelegate((context, index) {
+          //     final item = formdata.items[index];
 
-              return ItemDimissible(
-                item: item,
-                index: index,
-                onDismissed: (direction) {
-                  formWorkOrderNP.removeItem(index);
-                },
-              );
-            }, childCount: formdata.items.length),
-          ),
+          //     return ItemDimissible(
+          //       item: item,
+          //       index: index,
+          //       onDismissed: (direction) {
+          //         formWorkOrderNP.removeItem(index);
+          //       },
+          //     );
+          //   }, childCount: formdata.items.length),
+          // ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await showDialog(
-            context: context,
-            builder: (context) =>
-                FormAddWorkOrderItemDialogWidget(idVehicle: widget.idVehiculo),
-          );
+          // await showDialog(
+          //   context: context,
+          //   builder: (context) =>
+          //       FormAddWorkOrderItemDialogWidget(idVehicle: widget.idVehiculo),
+          // );
         },
         child: Icon(Icons.add),
       ),
