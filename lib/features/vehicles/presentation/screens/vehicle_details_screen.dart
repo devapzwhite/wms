@@ -104,6 +104,11 @@ class _CreateWorkorderScreenState extends ConsumerState<VehicleDetailsScreen> {
                 child: Column(
                   children: [
                     ListTile(
+                      onTap: () async {
+                        await context.push(
+                          '/workorders/detailworkorder/${workOrder.id}',
+                        );
+                      },
                       contentPadding: EdgeInsets.symmetric(horizontal: 4),
                       title: Column(
                         children: [

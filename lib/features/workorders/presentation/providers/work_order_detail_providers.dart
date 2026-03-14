@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wms/domain/entities/entities.dart';
+import 'package:wms/features/workorders/presentation/providers/work_order_repository_provider.dart';
 
 final workOrderNotifierProvider =
     NotifierProvider.family<WorkOrderDetailNotifier, WorkOrderDetailState, int>(
@@ -12,12 +14,32 @@ class WorkOrderDetailNotifier extends Notifier<WorkOrderDetailState> {
   WorkOrderDetailNotifier(this.workOrderId);
   @override
   WorkOrderDetailState build() {
-    _loadData(); //ojo abajo retorna un state vacio
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
     return WorkOrderDetailState();
   }
 
   void _loadData() async {
-    //TODO: que cargue los datos con el workorder id
+    state = state.copyWith(isLoading: true);
+    try {
+      final repository = ref.read(workOrderRepositoryProvider);
+      final workOrderDetail = await repository.getWorkOrderDetail(workOrderId);
+
+      if (ref.mounted) {
+        state = state.copyWith(
+          workOrder: workOrderDetail.workorder,
+          workOrderItem: workOrderDetail.items,
+          isLoading: false,
+        );
+      }
+    } catch (e) {
+      if (ref.mounted) {
+        state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      }
+    }
+  }
+
+  void refresh() {
+    _loadData();
   }
 }
 

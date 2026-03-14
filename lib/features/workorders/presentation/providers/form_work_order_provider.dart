@@ -116,10 +116,8 @@ class WorkOrderFormNotifier extends Notifier<FormWorkOrderState> {
       }
     } on WorkOrderErrors catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.message);
-      print('error workOrder ${e.message}');
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
-      print('error workOrder ${e.toString()}');
     }
   }
 

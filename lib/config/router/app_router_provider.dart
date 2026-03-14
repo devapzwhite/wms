@@ -6,6 +6,7 @@ import 'package:wms/features/home/presentation/screens/home_screen.dart';
 import 'package:wms/features/vehicles/presentation/screens/vehicle_details_screen.dart';
 import 'package:wms/features/vehicles/presentation/screens/vehicle_screens.dart';
 import 'package:wms/features/workorders/presentation/screens/update_work_order_screen.dart';
+import 'package:wms/features/workorders/presentation/screens/work_order_detail_screen.dart';
 import 'package:wms/features/workorders/presentation/screens/workorders_screens.dart';
 import 'package:wms/presentation/screens/shared_screens.dart';
 import '../../features/customers/presentation/screens/customer_screens.dart';
@@ -117,11 +118,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             },
           ),
           GoRoute(
+            path: 'detailworkorder/:id_workorder',
+            builder: (context, state) {
+              final idWorkOrder = state.pathParameters['id_workorder']!;
+              return WorkOrderDetailScreen(
+                idWorkOrder: int.tryParse(idWorkOrder)!,
+              );
+            },
+          ),
+          GoRoute(
             path: 'updateworkorder/:id_workorder',
             builder: (context, state) {
-              final idVehiculo = state.pathParameters['id_workorder']!;
+              final idWorkOrder = state.pathParameters['id_workorder']!;
               return UpdateWorkOrderScreen(
-                idWorkOrder: int.tryParse(idVehiculo)!,
+                idWorkOrder: int.tryParse(idWorkOrder)!,
               );
             },
           ),
