@@ -2,6 +2,38 @@ import 'package:wms/config/helpers/mappers.dart';
 import 'package:wms/domain/entities/entities.dart';
 
 class WorkOrderMappers {
+  static WorkOrder dataMapToEntityWorkOrder(Map<String, dynamic> data) {
+    return WorkOrder(
+      id: data['id'],
+      shopId: data['shop_id'],
+      vehicleId: data['vehicle_id'],
+      createdBy: data['created_by'],
+      checkIn: data['check_in_at'] != null
+          ? DateTime.parse(data['check_in_at'])
+          : null,
+      checkOut: data['check_out_at'] != null
+          ? DateTime.parse(data['check_out_at'])
+          : null,
+      initialDiagnosis: data['initial_diagnosis'],
+      laborEstimate: double.tryParse(data['labor_estimate'] ?? '0'),
+      partsEstimate: double.tryParse(data['parts_estimate'] ?? '0'),
+      status: Mappers.textToWorkOrderStatus(data['status']),
+      notes: data['notes'],
+      createdAt: data['created_at'] != null
+          ? DateTime.parse(data['created_at'])
+          : null,
+    );
+  }
+
+  static Map<String, dynamic> entityWorkOrderToData(WorkOrder workOrder) {
+    return {
+      "vehicle_id": workOrder.vehicleId,
+      "initial_diagnosis": workOrder.initialDiagnosis,
+      "status": workOrder.status.label,
+      "notes": workOrder.notes,
+    };
+  }
+
   static Map<String, dynamic> entityWorkOrderDetailsToDataMap(
     WorkOrderDetail workOrderDetail,
   ) {

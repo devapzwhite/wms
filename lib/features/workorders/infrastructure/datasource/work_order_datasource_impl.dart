@@ -15,6 +15,29 @@ class WorkOrderDatasourceImpl extends WorkOrderDatasource {
 
   final dio = Dio(BaseOptions(baseUrl: '${dotenv.get('API_URL')}/workorders'));
 
+  @override
+  Future<List<WorkOrder>> getWorkOrders() async {
+    try {
+      final response = await dio.get(
+        '/',
+        options: Options(headers: {'Authorization': 'Bearer ${_getToken()}'}),
+      );
+      final List<WorkOrder> workOrders = List<WorkOrder>.from(
+        response.data.map(
+          (wo) => WorkOrderMappers.dataMapToEntityWorkOrder(wo),
+        ),
+      );
+      return workOrders;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw WorkOrderErrors(message: 'Token expirado');
+      }
+      throw WorkOrderErrors(message: 'error en dio desconocido ${e.message}');
+    } catch (e) {
+      throw WorkOrderErrors(message: 'error desconocido ${e.toString()}');
+    }
+  }
+
   String _getToken() {
     final bool expired = ref.read(authProvider.notifier).isTokenExpired();
     if (expired) {

@@ -30,4 +30,9 @@ class WorkOrderRepositoryImpl extends WorkOrderRepository {
   Future<List<WorkOrder>> getListWorkOrders(int idVehicle) {
     return workOrderDatasource.getListWorkOrders(idVehicle);
   }
+
+  @override
+  Future<List<WorkOrder>> getWorkOrders() {
+    return workOrderDatasource.getWorkOrders();
+  }
 }
