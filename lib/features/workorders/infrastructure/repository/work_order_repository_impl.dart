@@ -17,6 +17,11 @@ class WorkOrderRepositoryImpl extends WorkOrderRepository {
   }
 
   @override
+  Future<WorkOrder> updateWorkOrder(int id, WorkOrder workOrder) {
+    return workOrderDatasource.updateWorkOrder(id, workOrder);
+  }
+
+  @override
   Future<List<WorkOrderItem>> getItemsFromWorkOrderId(int id) {
     return workOrderDatasource.getItemsFromWorkOrderId(id);
   }

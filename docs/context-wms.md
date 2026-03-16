@@ -11,6 +11,28 @@ Stack principal:
 - Backend: FastAPI (Python) + PostgreSQL, con SQLAlchemy y migraciones.
 - Despliegue objetivo: Render u otro PaaS similar, con entorno `.env`.
 
+
+
+# Patrones de desarrollo:
+1. Clean Architecture / Feature-First:
+   - Estructura por features: features/customers/, features/vehicles/, features/workorders/, features/auth/, features/home/
+   - Cada feature tiene: domain/, infrastructure/, presentation/
+2. Repository Pattern:
+   - Interfaces en domain/repository/
+   - Implementaciones en infrastructure/repository/
+3. Datasource Pattern:
+   - Interfaces en domain/datasource/
+   - Implementaciones en infrastructure/datasource/
+4. Mappers:
+   - Separación en infrastructure/mappers/ para convertir entre entidades y modelos/datos
+5. Riverpod:
+   - Estado con NotifierProvider
+   - Providers para repositorios
+6. Go Router para navegación
+7. Dio para HTTP client
+  
+
+  
 ## Problema que resuelve
 
 El WMS centraliza la operación diaria del taller:

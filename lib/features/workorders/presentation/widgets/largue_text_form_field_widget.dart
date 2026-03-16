@@ -5,9 +5,11 @@ class CustomLargeTextFormField extends StatelessWidget {
   final int maxLines;
   final double borderRadius;
   final String label;
+  final String? hintText;
   final Function(String)? onChanged;
   final TextEditingController? controller;
   const CustomLargeTextFormField({
+    this.hintText = '',
     this.controller,
     this.minLines = 1,
     this.maxLines = 1,
@@ -24,6 +26,7 @@ class CustomLargeTextFormField extends StatelessWidget {
       minLines: minLines,
       maxLines: maxLines,
       decoration: InputDecoration(
+        hintText: hintText,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
         ),

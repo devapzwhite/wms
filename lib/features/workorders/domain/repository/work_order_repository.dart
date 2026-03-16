@@ -6,4 +6,5 @@ abstract class WorkOrderRepository {
   Future<List<WorkOrder>> getListWorkOrders(int idVehicle);
   Future<List<WorkOrderItem>> getItemsFromWorkOrderId(int id);
   Future<List<WorkOrder>> getWorkOrders();
+  Future<WorkOrder> updateWorkOrder(int id, WorkOrder workOrder);
 }

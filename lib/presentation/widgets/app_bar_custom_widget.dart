@@ -5,7 +5,8 @@ import 'package:wms/domain/entities/entities.dart';
 import 'package:wms/features/auth/presentation/providers/auth_provider.dart';
 
 class AppBarCustom extends ConsumerWidget implements PreferredSizeWidget {
-  const AppBarCustom({required this.title});
+  final List<Widget>? actions;
+  const AppBarCustom({super.key, this.actions, required this.title});
 
   final String title;
   @override

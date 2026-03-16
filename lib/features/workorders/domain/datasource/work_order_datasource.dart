@@ -6,4 +6,5 @@ abstract class WorkOrderDatasource {
   Future<WorkOrderDetail> getWorkOrderDetail(int id);
   Future<List<WorkOrder>> getListWorkOrders(int idVehicle);
   Future<List<WorkOrderItem>> getItemsFromWorkOrderId(int id);
+  Future<WorkOrder> updateWorkOrder(int id, WorkOrder workOrder);
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wms/features/customers/presentation/providers/customers_provider.dart';
-import 'package:wms/presentation/widgets/widgets.dart';
 
 class CustomerMenuScreen extends ConsumerStatefulWidget {
   const CustomerMenuScreen({super.key});
@@ -23,90 +22,170 @@ class _CustomerMenuScreenState extends ConsumerState<CustomerMenuScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String title = "Menú de Clientes";
     final customersProvider = ref.watch(customerNotifierProvider);
+    final colors = Theme.of(context).colorScheme;
+    final textStyle = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBarCustom(title: title),
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Container(
-              alignment: Alignment.topLeft,
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                alignment: WrapAlignment.center,
-                children: [
-                  Chip(
-                    label: Text(
-                      '${customersProvider.customers.length.toString()} ${customersProvider.customers.length > 1 ? 'Clientes' : 'Cliente'}',
+      appBar: AppBar(title: const Text('Clientes'), centerTitle: true),
+      body: customersProvider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : customersProvider.customers.isEmpty
+          ? _EmptyCustomers(colors: colors, textStyle: textStyle)
+          : CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Row(
+                      children: [
+                        Icon(Icons.people, size: 20, color: colors.primary),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${customersProvider.customers.length} ${customersProvider.customers.length == 1 ? 'Cliente' : 'Clientes'}',
+                          style: textStyle.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final customer = customersProvider.customers[index];
+                      return _CustomerCard(
+                        customer: customer,
+                        onTap: () =>
+                            context.push('/customers/details/${customer.id}'),
+                        onEditTap: () => context.push(
+                          '/customers/updatecustomer/${customer.id}',
+                        ),
+                      );
+                    }, childCount: customersProvider.customers.length),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 80)),
+              ],
             ),
-            Divider(),
-            !customersProvider.isLoading
-                ? Flexible(
-                    child: customersProvider.customers.isNotEmpty
-                        ? ListView.builder(
-                            itemCount: customersProvider.customers.length,
-                            itemBuilder: (context, index) {
-                              final customer =
-                                  customersProvider.customers[index];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 5,
-                                ),
-                                child: Card(
-                                  elevation: 8,
-                                  child: ListTile(
-                                    onTap: () {
-                                      context.push(
-                                        '/customers/details/${customer.id}',
-                                      );
-                                    },
-                                    title: Text(
-                                      '${customer.name} ${customer.lastName}',
-                                    ),
-                                    subtitle: Text(
-                                      customer.address ??
-                                          'no tiene registrado direccion',
-                                    ),
-                                    leading: CircleAvatar(
-                                      child: Text(
-                                        '${customer.name.toUpperCase().substring(0, 1)}${customer.lastName.toUpperCase().substring(0, 1)}',
-                                      ),
-                                    ),
-                                    trailing: IconButton(
-                                      onPressed: () {
-                                        context.push(
-                                          '/customers/updatecustomer/${customer.id}',
-                                        );
-                                      },
-                                      icon: Icon(Icons.edit_document),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          )
-                        : Padding(
-                            padding: EdgeInsetsGeometry.all(10),
-                            child: Text('No hay clientes registrados'),
-                          ),
-                  )
-                : CircularProgressIndicator(),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/customers/addcustomer'),
+        icon: const Icon(Icons.person_add),
+        label: const Text('Agregar cliente'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/customers/addcustomer');
-        },
-        child: Icon(Icons.person_add_alt_sharp),
+    );
+  }
+}
+
+class _EmptyCustomers extends StatelessWidget {
+  final ColorScheme colors;
+  final TextTheme textStyle;
+
+  const _EmptyCustomers({required this.colors, required this.textStyle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.people_outline, size: 64, color: colors.outline),
+          const SizedBox(height: 16),
+          Text(
+            'No hay clientes registrados',
+            style: textStyle.titleMedium?.copyWith(color: colors.outline),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Toca el botón + para agregar el primero',
+            style: textStyle.bodyMedium?.copyWith(color: colors.outline),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CustomerCard extends StatelessWidget {
+  final dynamic customer;
+  final VoidCallback onTap;
+  final VoidCallback onEditTap;
+
+  const _CustomerCard({
+    required this.customer,
+    required this.onTap,
+    required this.onEditTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textStyle = Theme.of(context).textTheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: colors.primaryContainer,
+                child: Text(
+                  '${customer.name[0]}${customer.lastName[0]}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: colors.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${customer.name} ${customer.lastName}',
+                      style: textStyle.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: colors.outline,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            customer.address ?? 'Sin dirección',
+                            style: textStyle.bodySmall?.copyWith(
+                              color: colors.outline,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: onEditTap,
+                icon: Icon(Icons.edit_outlined),
+                color: colors.primary,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
