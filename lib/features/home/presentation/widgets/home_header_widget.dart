@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:wms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:wms/features/home/presentation/providers/home_stats_provider.dart';
 
 class HomeHeaderWidget extends ConsumerWidget {
@@ -18,10 +20,7 @@ class HomeHeaderWidget extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            colors.primary,
-            colors.primary.withOpacity(0.8),
-          ],
+          colors: [colors.primary, colors.primary.withOpacity(0.8)],
         ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(24),
@@ -59,17 +58,37 @@ class HomeHeaderWidget extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: colors.onPrimary.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.build_circle_outlined,
-                    color: colors.onPrimary,
-                    size: 28,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colors.onPrimary.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.build_circle_outlined,
+                        color: colors.onPrimary,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () {
+                        context.push('/settings');
+                      },
+                      icon: Icon(Icons.settings, color: colors.onPrimary),
+                      tooltip: 'Configuración',
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        ref.read(authProvider.notifier).logout();
+                        context.go('/login');
+                      },
+                      icon: Icon(Icons.logout, color: colors.onPrimary),
+                      tooltip: 'Cerrar sesión',
+                    ),
+                  ],
                 ),
               ],
             ),

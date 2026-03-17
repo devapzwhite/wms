@@ -4,6 +4,7 @@ import 'package:wms/features/customers/presentation/providers/customer_repositor
 import 'package:wms/features/home/domain/entities/home_stats_entity.dart';
 import 'package:wms/features/vehicles/presentation/providers/vehicle_repository_provider.dart';
 import 'package:wms/features/workorders/presentation/providers/work_order_repository_provider.dart';
+import 'package:wms/features/workshops/presentation/providers/workshop_provider.dart';
 
 final homeStatsProvider = NotifierProvider<HomeStatsNotifier, HomeStats>(
   () => HomeStatsNotifier(),
@@ -60,9 +61,14 @@ class HomeStatsNotifier extends Notifier<HomeStats> {
 }
 
 final userShopNameProvider = Provider<String>((ref) {
-  final authState = ref.watch(authProvider);
-  final shopId = authState.userSession?.user.shopId;
-  return shopId != null ? 'Taller #$shopId' : 'Mi Taller';
+  // Usar el workshopProvider para obtener el nombre del taller
+  final workshopAsync = ref.watch(workshopProvider);
+
+  return workshopAsync.when(
+    data: (workshop) => workshop.name.isNotEmpty ? workshop.name : 'Mi Taller',
+    loading: () => 'Cargando...',
+    error: (e, st) => 'Mi Taller',
+  );
 });
 
 final userNameProvider = Provider<String>((ref) {

@@ -10,6 +10,7 @@ import 'package:wms/features/workorders/presentation/screens/work_order_detail_s
 import 'package:wms/features/workorders/presentation/screens/workorders_screens.dart';
 import 'package:wms/presentation/screens/shared_screens.dart';
 import '../../features/customers/presentation/screens/customer_screens.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -45,6 +46,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
       GoRoute(path: '/home', builder: (context, state) => HomeScreen()),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
       GoRoute(
         path: '/customers',
         builder: (context, state) => CustomerMenuScreen(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wms/config/enums/status_enum.dart';
+import 'package:wms/domain/entities/work_order_item_entity.dart';
 import 'package:wms/features/workorders/presentation/providers/update_work_order_provider.dart';
 import 'package:wms/features/workorders/presentation/widgets/largue_text_form_field_widget.dart';
 import 'package:wms/presentation/widgets/widgets.dart';
@@ -54,7 +55,11 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
       _notesController.text = state.notes;
     }
 
+    // Escuchar cambios del provider
     ref.listen(updateWorkOrderProvider(widget.idWorkOrder), (previous, next) {
+      if (!mounted) return;
+
+      // Navegar solo cuando es un éxito nuevo
       if (next.isSuccess && previous?.isSuccess != true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -138,6 +143,9 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
           ),
           const SizedBox(height: 24),
           _buildSectionTitle(context, 'Ítems (${state.items.length})'),
+          const SizedBox(height: 8),
+          // Botón para agregar nuevo ítem
+          _buildAddItemButton(context, notifier),
           const SizedBox(height: 8),
           if (state.items.isEmpty)
             _buildEmptyItemsCard(context)
@@ -290,6 +298,147 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddItemButton(
+    BuildContext context,
+    UpdateWorkOrderNotifier notifier,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _showAddItemDialog(context, notifier),
+        icon: const Icon(Icons.add),
+        label: const Text('Agregar ítem'),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAddItemDialog(
+    BuildContext context,
+    UpdateWorkOrderNotifier notifier,
+  ) {
+    final descController = TextEditingController();
+    final qtyController = TextEditingController(text: '1');
+    final priceController = TextEditingController(text: '0');
+    String selectedType = 'LABOR';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          scrollable: true,
+          title: const Text('Nuevo ítem'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Tipo de ítem
+                DropdownButtonFormField<String>(
+                  value: selectedType,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: 'Tipo',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  items: WorkOrderItemType.values.map((tipo) {
+                    return DropdownMenuItem(
+                      value: tipo.label,
+                      child: Text(tipo.nombre),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() => selectedType = value!);
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Descripción
+                TextFormField(
+                  controller: descController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: 'Descripción *',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Cantidad y precio
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: qtyController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Cantidad',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: priceController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Precio unit.',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (descController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('La descripción es requerida'),
+                    ),
+                  );
+                  return;
+                }
+                final item = WorkOrderItem(
+                  workOrderId: widget.idWorkOrder,
+                  itemType: selectedType,
+                  description: descController.text,
+                  quantity: int.tryParse(qtyController.text) ?? 1,
+                  unitPrice: double.tryParse(priceController.text) ?? 0,
+                );
+                notifier.addItem(item);
+                Navigator.pop(context);
+              },
+              child: const Text('Agregar'),
+            ),
+          ],
         ),
       ),
     );

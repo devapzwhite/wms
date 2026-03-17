@@ -109,6 +109,7 @@ Quiero que sigas estas reglas:
    - Indica la ruta de archivo.
    - Muestra el contenido completo del archivo.
 6. Cuando te pida nuevas features, primero haz un pequeño diseño/plan (entidades, flujos, pantallas) y luego el código.
+7. Trata de evitar llamar demasiado al backend, basado en el flujo ve la forma de obtener datos, si no hay, trata de obtener del backend
 
 ## Primera tarea recomendada
 

@@ -48,6 +48,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                   surfaceTintColor: Colors.transparent,
                   flexibleSpace: FlexibleSpaceBar(
                     titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
+
                     title: Text(
                       '${customerData.customer.name} ${customerData.customer.lastName}',
                       style: TextStyle(
@@ -76,7 +77,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                               radius: 40,
                               backgroundColor: colors.primary,
                               child: Text(
-                                '${customerData.customer.name[0]}${customerData.customer.lastName[0]}',
+                                '${customerData.customer.name.trim().isEmpty ? '' : customerData.customer.name[0].toUpperCase()}${customerData.customer.lastName.trim().isEmpty ? '' : customerData.customer.lastName[0].toUpperCase()}',
                                 style: TextStyle(
                                   fontSize: 32,
                                   fontWeight: FontWeight.bold,
@@ -165,36 +166,36 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                     : SliverPadding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final vehicle = customerData.vehicles[index];
-                              return _VehicleCard(
-                                vehicle: vehicle,
-                                colors: colors,
-                                textStyle: textStyle,
-                                onEditTap: () async {
-                                  await context.push(
-                                    '/vehicles/updatevehicle/${vehicle.id}',
-                                  );
-                                  if (mounted) _loadData();
-                                },
-                                onCreateOrderTap: () async {
-                                  await context.push(
-                                    '/workorders/addworkorder/${vehicle.id}',
-                                  );
-                                  ref.invalidate(
-                                    workOrderFormProvider(vehicle.id!),
-                                  );
-                                },
-                                onTap: () {
-                                  context.push(
-                                    '/vehicles/detailvehicle/${vehicle.id}',
-                                  );
-                                },
-                              );
-                            },
-                            childCount: customerData.vehicles.length,
-                          ),
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final vehicle = customerData.vehicles[index];
+                            return _VehicleCard(
+                              vehicle: vehicle,
+                              colors: colors,
+                              textStyle: textStyle,
+                              onEditTap: () async {
+                                await context.push(
+                                  '/vehicles/updatevehicle/${vehicle.id}',
+                                );
+                                if (mounted) _loadData();
+                              },
+                              onCreateOrderTap: () async {
+                                await context.push(
+                                  '/workorders/addworkorder/${vehicle.id}',
+                                );
+                                ref.invalidate(
+                                  workOrderFormProvider(vehicle.id!),
+                                );
+                              },
+                              onTap: () {
+                                context.push(
+                                  '/vehicles/detailvehicle/${vehicle.id}',
+                                );
+                              },
+                            );
+                          }, childCount: customerData.vehicles.length),
                         ),
                       ),
                 const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -237,10 +238,7 @@ class _ContactSection extends StatelessWidget {
             colors: colors,
           ),
           const Divider(height: 24),
-          _WhatsAppTile(
-            phone: customer.phone,
-            colors: colors,
-          ),
+          _WhatsAppTile(phone: customer.phone, colors: colors),
           const Divider(height: 24),
           _ContactTile(
             icon: Icons.location_on_outlined,
@@ -287,10 +285,7 @@ class _ContactTile extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: colors.outline,
-                ),
+                style: TextStyle(fontSize: 12, color: colors.outline),
               ),
               const SizedBox(height: 2),
               Text(
@@ -327,10 +322,7 @@ class _WhatsAppTile extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Colors.green.shade700,
-              Colors.green.shade500,
-            ],
+            colors: [Colors.green.shade700, Colors.green.shade500],
           ),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -360,7 +352,11 @@ class _WhatsAppTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, color: Colors.white.withOpacity(0.7), size: 16),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white.withOpacity(0.7),
+              size: 16,
+            ),
           ],
         ),
       ),
@@ -400,16 +396,12 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             title,
-            style: textStyle.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: textStyle.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: textStyle.bodyMedium?.copyWith(
-              color: colors.outline,
-            ),
+            style: textStyle.bodyMedium?.copyWith(color: colors.outline),
             textAlign: TextAlign.center,
           ),
         ],
@@ -449,7 +441,9 @@ class _VehicleCard extends StatelessWidget {
             // Header del vehículo
             InkWell(
               onTap: onTap,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -508,7 +502,9 @@ class _VehicleCard extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 color: colors.surfaceContainerLow,
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(16),
+                ),
               ),
               child: Row(
                 children: [
@@ -522,11 +518,7 @@ class _VehicleCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Container(
-                    width: 1,
-                    height: 24,
-                    color: colors.outlineVariant,
-                  ),
+                  Container(width: 1, height: 24, color: colors.outlineVariant),
                   Expanded(
                     child: TextButton.icon(
                       onPressed: onCreateOrderTap,
