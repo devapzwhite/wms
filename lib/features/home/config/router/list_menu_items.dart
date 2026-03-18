@@ -24,28 +24,28 @@ final List<MenuItem> customerListMenuItems = [
   ),
 ];
 
-final List<MenuItem> vehicleListMenuItems = [
-  MenuItem(
-    icon: Icons.minor_crash_rounded,
-    title: 'Agregar Vehiculo',
-    route: '/vehicles/addvehicle',
-  ),
-  MenuItem(
-    icon: Icons.edit,
-    title: 'Editar Vehiculo',
-    route: '/vehicles/updatevehicle',
-  ),
-];
+// final List<MenuItem> vehicleListMenuItems = [
+//   MenuItem(
+//     icon: Icons.minor_crash_rounded,
+//     title: 'Agregar Vehiculo',
+//     route: '/vehicles/addvehicle',
+//   ),
+//   MenuItem(
+//     icon: Icons.edit,
+//     title: 'Editar Vehiculo',
+//     route: '/vehicles/updatevehicle',
+//   ),
+// ];
 
-final List<MenuItem> workOrderListMenuItems = [
-  MenuItem(
-    icon: Icons.note_add_rounded,
-    title: 'Agregar Orden',
-    route: '/workorders/addworkorder',
-  ),
-  MenuItem(
-    icon: Icons.note_alt_rounded,
-    title: 'Editar Orden',
-    route: '/workorders/editworkorder',
-  ),
-];
+// final List<MenuItem> workOrderListMenuItems = [
+//   MenuItem(
+//     icon: Icons.note_add_rounded,
+//     title: 'Agregar Orden',
+//     route: '/workorders/addworkorder',
+//   ),
+//   MenuItem(
+//     icon: Icons.note_alt_rounded,
+//     title: 'Editar Orden',
+//     route: '/workorders/editworkorder',
+//   ),
+// ];

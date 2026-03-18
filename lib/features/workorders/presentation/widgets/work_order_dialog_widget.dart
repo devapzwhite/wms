@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:wms/config/enums/status_enum.dart';
 import 'package:wms/config/helpers/mappers.dart';
 import 'package:wms/features/workorders/presentation/providers/form_work_order_provider.dart';
@@ -141,6 +143,36 @@ class _AddWorkOrderItemDialogWidgetState
                 ),
                 const SizedBox(height: 20),
 
+                // Foto "Antes"
+                _buildPhotoSection(
+                  context: context,
+                  label: 'Foto Antes',
+                  photoFile: ref
+                      .watch(workOrderFormProvider(widget.idVehicle))
+                      .beforePhotoFile,
+                  onPickFromCamera: () =>
+                      providerNotifier.pickBeforePhotoFromCamera(),
+                  onPickFromGallery: () =>
+                      providerNotifier.pickBeforePhotoFromGallery(),
+                  onClear: () => providerNotifier.clearBeforePhoto(),
+                ),
+                const SizedBox(height: 16),
+
+                // Foto "Después"
+                _buildPhotoSection(
+                  context: context,
+                  label: 'Foto Después',
+                  photoFile: ref
+                      .watch(workOrderFormProvider(widget.idVehicle))
+                      .afterPhotoFile,
+                  onPickFromCamera: () =>
+                      providerNotifier.pickAfterPhotoFromCamera(),
+                  onPickFromGallery: () =>
+                      providerNotifier.pickAfterPhotoFromGallery(),
+                  onClear: () => providerNotifier.clearAfterPhoto(),
+                ),
+                const SizedBox(height: 20),
+
                 // Botones
                 Row(
                   children: [
@@ -224,6 +256,65 @@ class _AddWorkOrderItemDialogWidgetState
       ),
       validator: validator,
       onChanged: onChange,
+    );
+  }
+
+  /// Widget para seleccionar y previsualizar fotos
+  Widget _buildPhotoSection({
+    required BuildContext context,
+    required String label,
+    required XFile? photoFile,
+    required VoidCallback onPickFromCamera,
+    required VoidCallback onPickFromGallery,
+    required VoidCallback onClear,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        if (photoFile != null) ...[
+          // Previsualización de la foto
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(
+              File(photoFile.path),
+              height: 120,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Botón para quitar la foto
+          TextButton.icon(
+            onPressed: onClear,
+            icon: const Icon(Icons.close, size: 18),
+            label: const Text('Quitar'),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+          ),
+        ] else ...[
+          // Botones para seleccionar foto
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onPickFromCamera,
+                  icon: const Icon(Icons.camera_alt, size: 18),
+                  label: const Text('Cámara'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onPickFromGallery,
+                  icon: const Icon(Icons.photo_library, size: 18),
+                  label: const Text('Galería'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

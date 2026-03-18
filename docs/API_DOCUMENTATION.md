@@ -48,65 +48,6 @@ username=tu_usuario&password=tu_password
 | GET | `/customers/{customer_id}/details` | Cliente con vehículos |
 | PUT | `/customers/{customer_id}` | Actualizar cliente |
 
-### Schemas
-
-**CustomerCreate / CustomerUpdate:**
-```json
-{
-  "document_id": "12345678",
-  "name": "Juan",
-  "last_name": "Pérez",
-  "phone": "+56912345678",
-  "email": "juan@email.com",
-  "address": "Calle 123"
-}
-```
-
-**CustomerRead:**
-```json
-{
-  "id": 1,
-  "shop_id": 1,
-  "document_id": "12345678",
-  "name": "Juan",
-  "last_name": "Pérez",
-  "phone": "+56912345678",
-  "email": "juan@email.com",
-  "address": "Calle 123",
-  "created_at": "2024-01-01T00:00:00Z"
-}
-```
-
-**CustomerReadDetail:**
-```json
-{
-  "id": 1,
-  "document_id": "12345678",
-  "name": "Juan",
-  "last_name": "Pérez",
-  "phone": "+56912345678",
-  "email": "juan@email.com",
-  "address": "Calle 123",
-  "created_at": "2024-01-01T00:00:00Z",
-  "workshop": {
-    "name": "Taller Central",
-    "owner_name": "Pedro García",
-    "phone": "+56900000000",
-    "address": "Av. Principal 100"
-  },
-  "vehicles": [
-    {
-      "id": 1,
-      "vehicle_type": "CAR",
-      "plate": "ABC-123",
-      "brand": "Toyota",
-      "model": "Corolla",
-      "year": 2020
-    }
-  ]
-}
-```
-
 ---
 
 ## 3. Vehículos (Vehicles)
@@ -117,51 +58,12 @@ username=tu_usuario&password=tu_password
 |--------|----------|-------------|
 | GET | `/vehicles` | Listar vehículos del taller |
 | GET | `/vehicles/searchByPlate/{plate}` | Buscar por patente |
-| GET | `/vehicles/searchById/{id}` | Buscar por ID |
 | POST | `/vehicles` | Crear vehículo |
 | GET | `/vehicles/{id}/workorders` | Órdenes del vehículo |
 | PUT | `/vehicles/{id}` | Actualizar vehículo |
 
-### Schemas
-
-**CreateVehicle:**
-```json
-{
-  "customer_id": 1,
-  "vehicle_type": "CAR",
-  "plate": "ABC-123",
-  "brand": "Toyota",
-  "model": "Corolla",
-  "year": 2020,
-  "photo_url": "https://..."
-}
-```
-
-**VehicleRead:**
-```json
-{
-  "id": 1,
-  "shop_id": 1,
-  "customer_id": 1,
-  "vehicle_type": "CAR",
-  "plate": "ABC-123",
-  "brand": "Toyota",
-  "model": "Corolla",
-  "year": 2020,
-  "photo_url": null,
-  "created_at": "2024-01-01T00:00:00Z"
-}
-```
-
 ### Vehicle Types
-- `CAR`
-- `SUV`
-- `VAN`
-- `MINIVAN`
-- `PICKUP`
-- `TRUCK`
-- `SKID_STEER`
-- `MOTORCYCLE`
+- `CAR`, `SUV`, `VAN`, `MINIVAN`, `PICKUP`, `TRUCK`, `SKID_STEER`, `MOTORCYCLE`
 
 ---
 
@@ -175,49 +77,8 @@ username=tu_usuario&password=tu_password
 | POST | `/workorders/` | Crear orden |
 | PUT | `/workorders/{id}` | Actualizar orden |
 
-### Schemas
-
-**NewWorkOrder:**
-```json
-{
-  "vehicle_id": 1,
-  "initial_diagnosis": "Fallo en motor",
-  "labor_estimate": 50000,
-  "parts_estimate": 150000,
-  "status": "RECEIVED",
-  "notes": "Cliente solicitó prioridad"
-}
-```
-
-**WorkOrdersRead:**
-```json
-{
-  "id": 1,
-  "shop_id": 1,
-  "vehicle_id": 1,
-  "created_by_user_id": 1,
-  "check_in_at": "2024-01-01T10:00:00Z",
-  "check_out_at": null,
-  "initial_diagnosis": "Fallo en motor",
-  "labor_estimate": "50000.00",
-  "parts_estimate": "150000.00",
-  "status": "RECEIVED",
-  "notes": "Cliente solicitó prioridad",
-  "created_at": "2024-01-01T10:00:00Z"
-}
-```
-
 ### Work Order Status
-- `RECEIVED` - Recibido
-- `DIAGNOSIS` - En diagnóstico
-- `WAITING_APPROVAL` - Esperando aprobación
-- `APPROVED` - Aprobado
-- `IN_PROGRESS` - En progreso
-- `WAITING_PARTS` - Esperando repuestos
-- `REPAIRED` - Reparado
-- `READY_FOR_DELIVERY` - Listo para entrega
-- `COMPLETED` - Completado
-- `CANCELLED` - Cancelado
+- `RECEIVED`, `DIAGNOSIS`, `WAITING_APPROVAL`, `APPROVED`, `IN_PROGRESS`, `WAITING_PARTS`, `REPAIRED`, `READY_FOR_DELIVERY`, `COMPLETED`, `CANCELLED`
 
 ---
 
@@ -229,27 +90,98 @@ username=tu_usuario&password=tu_password
 |--------|----------|-------------|
 | GET | `/workorderitem/` | Listar ítems (opcional `?workOrderId=1`) |
 | GET | `/workorderitem/{id}` | Obtener ítem por ID |
-| POST | `/workorderitem/` | Crear ítem |
+| POST | `/workorderitem/` | Crear ítem (con imágenes) |
 | PUT | `/workorderitem/{id}` | Actualizar ítem |
 | DELETE | `/workorderitem/{id}` | Eliminar ítem |
 
-### Schemas
+---
 
-**WorkOrderItemCreate:**
-```json
-{
-  "work_order_id": 1,
-  "item_type": "LABOR",
-  "description": "Cambio de aceite",
-  "quantity": 1,
-  "unit_cost": 15000,
-  "unit_price": 25000,
-  "before_photo": "https://...",
-  "after_photo": "https://..."
+### Crear Ítem con Imágenes (multipart/form-data)
+
+**URL:** `POST http://localhost:8000/workorderitem/`
+
+**Tipo de Body:** `multipart/form-data`
+
+**Parámetros del form-data:**
+
+| Campo | Tipo | Requerido | Descripción |
+|-------|------|-----------|-------------|
+| `workorderid` | integer | ✅ | ID de la orden de trabajo |
+| `itemtype` | string | ✅ | DIAGNOSIS, LABOR, o PART |
+| `description` | string | ✅ | Descripción del trabajo |
+| `quantity` | integer | ❌ | Default: 1 |
+| `unitcost` | number | ❌ | Costo interno (default: 0) |
+| `unitprice` | number | ❌ | Precio al cliente (default: 0) |
+| `beforephoto` | file | ❌ | Foto antes del trabajo (image/*) |
+| `afterphoto` | file | ❌ | Foto después del trabajo (image/*) |
+
+**Ejemplo Flutter:**
+```dart
+import 'dart:io';
+import 'package:http/http.dart' as http;
+
+Future<void> createWorkOrderItem({
+  required String token,
+  required int workOrderId,
+  required String itemType,
+  required String description,
+  File? beforePhoto,
+  File? afterPhoto,
+}) async {
+  var uri = Uri.parse('http://localhost:8000/workorderitem/');
+  var request = http.MultipartRequest('POST', uri);
+
+  // Headers
+  request.headers['Authorization'] = 'Bearer $token';
+
+  // Campos requeridos
+  request.fields['workorderid'] = workOrderId.toString();
+  request.fields['itemtype'] = itemType;  // 'DIAGNOSIS', 'LABOR', o 'PART'
+  request.fields['description'] = description;
+
+  // Campos opcionales
+  request.fields['quantity'] = '1';
+  request.fields['unitcost'] = '15000';
+  request.fields['unitprice'] = '25000';
+
+  // Fotos opcionales (antes)
+  if (beforePhoto != null) {
+    request.files.add(await http.MultipartFile.fromPath(
+      'beforephoto',
+      beforePhoto.path,
+    ));
+  }
+
+  // Fotos opcionales (después)
+  if (afterPhoto != null) {
+    request.files.add(await http.MultipartFile.fromPath(
+      'afterphoto',
+      afterPhoto.path,
+    ));
+  }
+
+  var response = await request.send();
+  
+  if (response.statusCode == 201) {
+    var responseData = await response.stream.bytesToString();
+    print('Ítem creado: $responseData');
+  } else {
+    print('Error: ${response.statusCode}');
+  }
 }
+
+// Uso:
+await createWorkOrderItem(
+  token: 'tu_token_jwt',
+  workOrderId: 1,
+  itemType: 'LABOR',
+  description: 'Cambio de aceite',
+  beforePhoto: File('/path/antes.jpg'),
+  afterPhoto: File('/path/despues.jpg'),
+);
 ```
 
-**WorkOrderItemResponse:**
+**Response (201 Created):**
 ```json
 {
   "id": 1,
@@ -259,10 +191,18 @@ username=tu_usuario&password=tu_password
   "quantity": 1,
   "unit_cost": "15000.00",
   "unit_price": "25000.00",
-  "before_photo_url": "https://...",
-  "after_photo_url": "https://...",
+  "before_photo_url": "workorder_items/before_wo1_20240101_abc12345.jpg",
+  "after_photo_url": "workorder_items/after_wo1_20240101_def67890.jpg",
   "created_at": "2024-01-01T10:00:00Z"
 }
+```
+
+**Acceso a las imágenes (PROTEGIDO):**
+Las imágenes ahora requieren autenticación JWT. El endpoint verifica que el usuario pertenece al mismo taller (shop_id) de la orden de trabajo.
+
+```
+GET http://localhost:8000/media/workorder_items/before_wo1_20240101_abc12345.jpg
+Headers: Authorization: Bearer <token>
 ```
 
 ### Item Types
@@ -273,8 +213,6 @@ username=tu_usuario&password=tu_password
 ---
 
 ## 6. Talleres (Workshops)
-
-### Endpoints
 
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
@@ -288,8 +226,6 @@ username=tu_usuario&password=tu_password
 
 ## 7. Usuarios (Users)
 
-### Endpoints
-
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
 | GET | `/workshops/{shop_id}/users` | Listar usuarios | ✅ |
@@ -298,64 +234,10 @@ username=tu_usuario&password=tu_password
 | PUT | `/workshops/{shop_id}/users/{id}` | Actualizar usuario | ADMIN |
 | DELETE | `/workshops/{shop_id}/users/{id}` | Eliminar usuario | ADMIN |
 | PATCH | `/workshops/{shop_id}/users/{id}/active` | Activar/desactivar | ADMIN |
-| GET | `/workshops/{shop_id}/users/{id}/roles` | Ver roles | ✅ |
-
-### Schemas
-
-**UserCreate:**
-```json
-{
-  "username": "jsmith",
-  "full_name": "Juan Smith",
-  "email": "juan@email.com",
-  "password": "securepassword123",
-  "is_active": true
-}
-```
-
-**UserUpdate:**
-```json
-{
-  "username": "jsmith",
-  "full_name": "Juan Smith",
-  "email": "juan@email.com",
-  "password": "newpassword123",
-  "is_active": true
-}
-```
-
-**UserRead:**
-```json
-{
-  "id": 1,
-  "shop_id": 1,
-  "username": "jsmith",
-  "full_name": "Juan Smith",
-  "email": "juan@email.com",
-  "is_active": true,
-  "created_at": "2024-01-01T00:00:00Z"
-}
-```
-
-**UserReadWithRoles:**
-```json
-{
-  "id": 1,
-  "shop_id": 1,
-  "username": "jsmith",
-  "full_name": "Juan Smith",
-  "email": "juan@email.com",
-  "is_active": true,
-  "created_at": "2024-01-01T00:00:00Z",
-  "roles": ["ADMIN", "MECHANIC"]
-}
-```
 
 ---
 
 ## 8. Roles
-
-### Endpoints
 
 | Método | Endpoint | Descripción | Auth |
 |--------|----------|-------------|------|
@@ -367,33 +249,6 @@ username=tu_usuario&password=tu_password
 | GET | `/roles/users/{user_id}/roles` | Roles de usuario | ✅ |
 | POST | `/roles/users/{user_id}/roles` | Asignar rol | ✅ |
 | DELETE | `/roles/users/{user_id}/roles/{role_id}` | Quitar rol | ✅ |
-
-### Schemas
-
-**RoleCreate:**
-```json
-{
-  "name": "MECHANIC",
-  "description": "Técnico mecánico del taller"
-}
-```
-
-**RoleRead:**
-```json
-{
-  "id": 1,
-  "name": "MECHANIC",
-  "description": "Técnico mecánico del taller",
-  "created_at": "2024-01-01T00:00:00Z"
-}
-```
-
-**UserRoleAssign:**
-```json
-{
-  "role_id": 1
-}
-```
 
 ### Roles Disponibles
 - `ADMIN` - Administrador del taller
@@ -418,13 +273,123 @@ username=tu_usuario&password=tu_password
 
 ## 10. Notas Importantes
 
-1. **Multi-tenant:** Todos los endpoints (excepto auth y roles globales) filtran automáticamente por `shop_id` del usuario autenticado.
+1. **Multi-tenant:** Todos los endpoints filtran automáticamente por `shop_id` del usuario autenticado.
 
 2. **Autenticación:** El token JWT contiene `shop_id`, `username` e `id` del usuario.
 
-3. **Autorización:** Los endpoints que modifican datos (POST, PUT, DELETE) requieren el rol `ADMIN`.
+3. **Endpoints que requieren ADMIN:** POST, PUT, DELETE en talleres, usuarios.
 
-4. **Validaciones:**
-   - Email y username deben ser únicos dentro de cada taller
-   - La patente del vehículo debe ser única dentro del taller
-   - El documento del cliente debe ser único dentro del taller
+4. **Imágenes protegidas:** Las imágenes de WorkOrderItem ahora requieren autenticación JWT. Ver sección 5.1.
+
+---
+
+## 5.1 Imágenes de WorkOrderItem (Protegidas)
+
+### Importante
+Las imágenes de WorkOrderItem **ya no son públicas**. Requieren autenticación JWT y verificación de permisos por `shop_id`.
+
+### Endpoint
+```
+GET /media/workorder_items/{filename}
+```
+
+### Encabezados requeridos
+```
+Authorization: Bearer <tu_token_jwt>
+```
+
+### Cómo obtener la URL de la imagen
+Al crear un WorkOrderItem, la respuesta incluye los campos:
+```json
+{
+  "before_photo_url": "workorder_items/before_wo1_20240101_abc12345.jpg",
+  "after_photo_url": "workorder_items/after_wo1_20240101_def67890.jpg"
+}
+```
+
+Debes prependear la base URL:
+```dart
+String baseUrl = 'http://localhost:8000';
+String beforeImageUrl = '$baseUrl/media/${workOrderItem.before_photo_url}';
+String afterImageUrl = '$baseUrl/media/${workOrderItem.after_photo_url}';
+```
+
+### Ejemplo completo en Flutter
+```dart
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+
+class ImageService {
+  final String baseUrl = 'http://localhost:8000';
+  
+  // Descargar imagen con autenticación
+  Future<Image> loadProtectedImage(String? photoUrl, String token) async {
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return Image.asset('assets/no_image.png');
+    }
+    
+    String fullUrl = '$baseUrl/media/$photoUrl';
+    
+    // Usar con autenticación
+    return Image.network(
+      fullUrl,
+      headers: {'Authorization': 'Bearer $token'},
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return CircularProgressIndicator();
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(Icons.broken_image, size: 50);
+      },
+    );
+  }
+  
+  // Obtener bytes de imagen (útil para caching)
+  Future<List<int>?> getImageBytes(String? photoUrl, String token) async {
+    if (photoUrl == null || photoUrl.isEmpty) return null;
+    
+    String fullUrl = '$baseUrl/media/$photoUrl';
+    var response = await http.get(
+      Uri.parse(fullUrl),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    }
+    return null;
+  }
+}
+
+// Widget de ejemplo
+class WorkOrderItemImage extends StatelessWidget {
+  final String? photoUrl;
+  final String token;
+  
+  @override
+  Widget build(BuildContext context) {
+    if (photoUrl == null || photoUrl!.isEmpty) {
+      return Icon(Icons.image_not_supported, size: 50);
+    }
+    
+    String fullUrl = 'http://localhost:8000/media/$photoUrl';
+    
+    return Image.network(
+      fullUrl,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+  }
+}
+```
+
+### Códigos de respuesta
+| Código | Descripción |
+|--------|-------------|
+| 200 | Imagen encontrada y devuelta |
+| 401 | No autenticado (token inválido o ausente) |
+| 404 | Imagen no encontrada o sin acceso |
+
+### Seguridad
+- El endpoint verifica que `WorkOrderItem` pertenezca a una `WorkOrder` con el mismo `shop_id` que el usuario autenticado.
+- Si el usuario intenta acceder a una imagen de otro taller, recibe 404 (no 403) para no revelar la existencia del recurso.

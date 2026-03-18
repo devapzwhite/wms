@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:wms/config/enums/status_enum.dart';
+import 'package:wms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:wms/domain/entities/work_order_item_entity.dart';
 import 'package:wms/features/workorders/presentation/providers/update_work_order_provider.dart';
 import 'package:wms/features/workorders/presentation/widgets/largue_text_form_field_widget.dart';
@@ -43,6 +46,10 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
     );
     final colors = Theme.of(context).colorScheme;
 
+    // Obtener token para imágenes protegidas
+    final authState = ref.watch(authProvider);
+    final token = authState.userSession?.token.accessToken ?? '';
+
     // Inicializar controllers cuando se cargan los datos
     if (state.workOrder != null &&
         _diagnosisController.text.isEmpty &&
@@ -59,8 +66,10 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
     ref.listen(updateWorkOrderProvider(widget.idWorkOrder), (previous, next) {
       if (!mounted) return;
 
-      // Navegar solo cuando es un éxito nuevo
-      if (next.isSuccess && previous?.isSuccess != true) {
+      // Navegar solo cuando está completamente subido (isSuccess true Y no está guardando items)
+      if (next.isSuccess &&
+          !next.isSavingItems &&
+          previous?.isSuccess != true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Orden de trabajo actualizada correctamente'),
@@ -85,20 +94,32 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
       appBar: AppBarCustom(
         title: 'Editar Orden de Trabajo',
         actions: [
-          if (state.isLoading)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+          if (state.isLoading || state.isSavingItems)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  if (state.isSavingItems) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      'Subiendo...',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ],
               ),
             ),
         ],
       ),
       body: state.isLoading && state.workOrder == null
           ? const Center(child: CircularProgressIndicator())
-          : _buildContent(context, state, notifier),
+          : _buildContent(context, state, notifier, token),
     );
   }
 
@@ -106,6 +127,7 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
     BuildContext context,
     UpdateWorkOrderState state,
     UpdateWorkOrderNotifier notifier,
+    String token,
   ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -151,16 +173,34 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
             _buildEmptyItemsCard(context)
           else
             ...state.items.asMap().entries.map(
-              (entry) =>
-                  _buildItemCard(context, entry.value, entry.key, notifier),
+              (entry) => _buildItemCard(
+                context,
+                entry.value,
+                entry.key,
+                notifier,
+                token,
+              ),
             ),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: state.isLoading ? null : notifier.onSubmit,
-              icon: const Icon(Icons.save),
-              label: const Text('Guardar Cambios'),
+              onPressed: (state.isLoading || state.isSavingItems)
+                  ? null
+                  : notifier.onSubmit,
+              icon: state.isSavingItems
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.save),
+              label: Text(
+                state.isSavingItems ? 'Subiendo...' : 'Guardar Cambios',
+              ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -331,6 +371,9 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
     final qtyController = TextEditingController(text: '1');
     final priceController = TextEditingController(text: '0');
     String selectedType = 'LABOR';
+    XFile? beforePhoto;
+    XFile? afterPhoto;
+    final imagePicker = ImagePicker();
 
     showDialog(
       context: context,
@@ -340,75 +383,129 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
           title: const Text('Nuevo ítem'),
           content: SizedBox(
             width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Tipo de ítem
-                DropdownButtonFormField<String>(
-                  value: selectedType,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: 'Tipo',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Tipo de ítem
+                  DropdownButtonFormField<String>(
+                    value: selectedType,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: 'Tipo',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    items: WorkOrderItemType.values.map((tipo) {
+                      return DropdownMenuItem(
+                        value: tipo.label,
+                        child: Text(tipo.nombre),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() => selectedType = value!);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // Descripción
+                  TextFormField(
+                    controller: descController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: 'Descripción *',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
-                  items: WorkOrderItemType.values.map((tipo) {
-                    return DropdownMenuItem(
-                      value: tipo.label,
-                      child: Text(tipo.nombre),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() => selectedType = value!);
-                  },
-                ),
-                const SizedBox(height: 16),
-                // Descripción
-                TextFormField(
-                  controller: descController,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: 'Descripción *',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Cantidad y precio
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: qtyController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Cantidad',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 16),
+                  // Cantidad y precio
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: qtyController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Cantidad',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: priceController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: 'Precio unit.',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: priceController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Precio unit.',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Foto "Antes"
+                  _buildPhotoSection(
+                    context: context,
+                    label: 'Foto Antes',
+                    photoFile: beforePhoto,
+                    onPickFromCamera: () async {
+                      final photo = await imagePicker.pickImage(
+                        source: ImageSource.camera,
+                        imageQuality: 80,
+                      );
+                      if (photo != null) {
+                        setState(() => beforePhoto = photo);
+                      }
+                    },
+                    onPickFromGallery: () async {
+                      final photo = await imagePicker.pickImage(
+                        source: ImageSource.gallery,
+                        imageQuality: 80,
+                      );
+                      if (photo != null) {
+                        setState(() => beforePhoto = photo);
+                      }
+                    },
+                    onClear: () => setState(() => beforePhoto = null),
+                  ),
+                  const SizedBox(height: 16),
+                  // Foto "Después"
+                  _buildPhotoSection(
+                    context: context,
+                    label: 'Foto Después',
+                    photoFile: afterPhoto,
+                    onPickFromCamera: () async {
+                      final photo = await imagePicker.pickImage(
+                        source: ImageSource.camera,
+                        imageQuality: 80,
+                      );
+                      if (photo != null) {
+                        setState(() => afterPhoto = photo);
+                      }
+                    },
+                    onPickFromGallery: () async {
+                      final photo = await imagePicker.pickImage(
+                        source: ImageSource.gallery,
+                        imageQuality: 80,
+                      );
+                      if (photo != null) {
+                        setState(() => afterPhoto = photo);
+                      }
+                    },
+                    onClear: () => setState(() => afterPhoto = null),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -432,6 +529,8 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
                   description: descController.text,
                   quantity: int.tryParse(qtyController.text) ?? 1,
                   unitPrice: double.tryParse(priceController.text) ?? 0,
+                  beforePhotoFile: beforePhoto,
+                  afterPhotoFile: afterPhoto,
                 );
                 notifier.addItem(item);
                 Navigator.pop(context);
@@ -444,12 +543,80 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
     );
   }
 
+  /// Widget para seleccionar y previsualizar fotos
+  Widget _buildPhotoSection({
+    required BuildContext context,
+    required String label,
+    required XFile? photoFile,
+    required VoidCallback onPickFromCamera,
+    required VoidCallback onPickFromGallery,
+    required VoidCallback onClear,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        if (photoFile != null) ...[
+          // Previsualización de la foto
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(
+              File(photoFile.path),
+              height: 100,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Botón para quitar la foto
+          TextButton.icon(
+            onPressed: onClear,
+            icon: const Icon(Icons.close, size: 18),
+            label: const Text('Quitar'),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+          ),
+        ] else ...[
+          // Botones para seleccionar foto
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onPickFromCamera,
+                  icon: const Icon(Icons.camera_alt, size: 18),
+                  label: const Text('Cámara'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onPickFromGallery,
+                  icon: const Icon(Icons.photo_library, size: 18),
+                  label: const Text('Galería'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildItemCard(
     BuildContext context,
     dynamic item,
     int index,
     UpdateWorkOrderNotifier notifier,
+    String token,
   ) {
+    // Determinar la foto "antes" (puede ser URL del backend o archivo local)
+    final hasBeforePhoto =
+        item.beforePhoto != null && item.beforePhoto!.isNotEmpty ||
+        item.beforePhotoFile != null;
+    final hasAfterPhoto =
+        item.afterPhoto != null && item.afterPhoto!.isNotEmpty ||
+        item.afterPhotoFile != null;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -488,9 +655,82 @@ class _UpdateWorkOrderScreenState extends ConsumerState<UpdateWorkOrderScreen> {
                 ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
+            // Mostrar miniaturas de fotos si existen
+            if (hasBeforePhoto || hasAfterPhoto) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  if (hasBeforePhoto) ...[
+                    _buildThumbnail(
+                      context: context,
+                      label: 'Antes',
+                      photoFile: item.beforePhotoFile,
+                      photoUrl: item.beforePhoto,
+                      token: token,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  if (hasAfterPhoto)
+                    _buildThumbnail(
+                      context: context,
+                      label: 'Después',
+                      photoFile: item.afterPhotoFile,
+                      photoUrl: item.afterPhoto,
+                      token: token,
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  /// Widget para mostrar miniatura de foto
+  Widget _buildThumbnail({
+    required BuildContext context,
+    required String label,
+    dynamic photoFile,
+    String? photoUrl,
+    required String token,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.labelSmall),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: photoFile != null
+              ? Image.file(
+                  File(photoFile.path),
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                )
+              : photoUrl != null && photoUrl.isNotEmpty
+              ? Image.network(
+                  photoUrl,
+                  headers: {'Authorization': 'Bearer $token'},
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 60,
+                    height: 60,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.broken_image, size: 20),
+                  ),
+                )
+              : Container(
+                  width: 60,
+                  height: 60,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.image, size: 20),
+                ),
+        ),
+      ],
     );
   }
 

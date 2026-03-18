@@ -1,5 +1,15 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:wms/config/helpers/mappers.dart';
 import 'package:wms/domain/entities/entities.dart';
+
+/// Helper para obtener la URL completa de las fotos
+/// La URL completa incluye el prefijo /media/
+String? _getFullPhotoUrl(String? relativePath) {
+  if (relativePath == null || relativePath.isEmpty) return null;
+  final baseUrl = dotenv.get('API_URL');
+  // Las fotos están en /media/ según la documentación
+  return '$baseUrl/media/$relativePath';
+}
 
 class WorkOrderMappers {
   static WorkOrder dataMapToEntityWorkOrder(Map<String, dynamic> data) {
@@ -67,6 +77,7 @@ class WorkOrderMappers {
     Map<String, dynamic> data,
   ) {
     final List<dynamic> items = data['workorder_items'];
+
     final WorkOrder workOrder = WorkOrder(
       id: data['id'],
       vehicleId: data['vehicle_id'],
@@ -88,16 +99,21 @@ class WorkOrderMappers {
         items.map(
           (item) => WorkOrderItem(
             id: item['id'],
+            workOrderId: item['work_order_id'],
             itemType: item['item_type'],
             description: item['description'],
             quantity: item['quantity'],
-            unitPrice: double.tryParse(item['unit_price']),
-            createdAt: item['created_at'] != null
-                ? DateTime.parse(item['created_at'])
+            unitCost: item['unit_cost'] != null
+                ? double.tryParse(item['unit_cost'].toString())
                 : null,
-            // unitCost: item['unit_cost'],
-            // beforePhoto: item['before_photo'],
-            // afterPhoto: item['after_photo'],
+            unitPrice: double.tryParse(item['unit_price']?.toString() ?? '0'),
+            // El backend devuelve: before_photo_url y after_photo_url
+            // Convertir a URL completa
+            beforePhoto: _getFullPhotoUrl(item['before_photo_url']),
+            afterPhoto: _getFullPhotoUrl(item['after_photo_url']),
+            createdAt: item['created_at'] != null
+                ? DateTime.tryParse(item['created_at'])
+                : null,
           ),
         ),
       ),

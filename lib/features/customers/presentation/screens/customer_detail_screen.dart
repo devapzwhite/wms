@@ -44,17 +44,21 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 SliverAppBar(
                   expandedHeight: 220,
                   pinned: true,
+                  centerTitle: true,
                   backgroundColor: colors.surface,
                   surfaceTintColor: Colors.transparent,
                   flexibleSpace: FlexibleSpaceBar(
-                    titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
-
-                    title: Text(
-                      '${customerData.customer.name} ${customerData.customer.lastName}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: colors.primary,
+                    centerTitle: true,
+                    titlePadding: const EdgeInsets.only(bottom: 36),
+                    title: Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${customerData.customer.name} ${customerData.customer.lastName}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: colors.primary,
+                        ),
                       ),
                     ),
                     background: Container(

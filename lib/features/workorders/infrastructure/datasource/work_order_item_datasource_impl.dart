@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:wms/domain/entities/work_order_item_entity.dart';
 import 'package:wms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:wms/features/workorders/domain/datasource/work_order_item_datasource.dart';
@@ -83,6 +85,109 @@ class WorkOrderItemDatasourceImpl extends WorkOrderItemDatasource {
     }
   }
 
+  /// Crea un ítem con imágenes usando multipart/form-data
+  Future<WorkOrderItem> createItemWithPhotos({
+    required int workOrderId,
+    required String itemType,
+    required String description,
+    int? quantity,
+    double? unitCost,
+    double? unitPrice,
+    XFile? beforePhoto,
+    XFile? afterPhoto,
+  }) async {
+    try {
+      // Crear FormData para multipart/form-data
+      final formData = FormData();
+
+      // Campos del formulario (nombres exactos según API)
+      formData.fields.add(MapEntry('workorderid', workOrderId.toString()));
+      formData.fields.add(MapEntry('itemtype', itemType));
+      formData.fields.add(MapEntry('description', description));
+      if (quantity != null) {
+        formData.fields.add(MapEntry('quantity', quantity.toString()));
+      }
+      if (unitCost != null) {
+        formData.fields.add(MapEntry('unitcost', unitCost.toString()));
+      }
+      if (unitPrice != null) {
+        formData.fields.add(MapEntry('unitprice', unitPrice.toString()));
+      }
+
+      // Archivos (solo si existen)
+      if (beforePhoto != null) {
+        formData.files.add(
+          MapEntry(
+            'beforephoto',
+            await MultipartFile.fromFile(
+              beforePhoto.path,
+              filename: beforePhoto.name,
+            ),
+          ),
+        );
+      }
+      if (afterPhoto != null) {
+        formData.files.add(
+          MapEntry(
+            'afterphoto',
+            await MultipartFile.fromFile(
+              afterPhoto.path,
+              filename: afterPhoto.name,
+            ),
+          ),
+        );
+      }
+
+      print('=== CREATE ITEM WITH PHOTOS ===');
+      print('URL: ${dio.options.baseUrl}/');
+      print('Fields: ${formData.fields}');
+      print('Files: ${formData.files.map((f) => f.value.filename).toList()}');
+
+      // Enviar solicitud con progreso
+      final response = await dio.post(
+        '/',
+        data: formData,
+        options: Options(
+          headers: {'Authorization': 'Bearer ${_getToken()}'},
+          contentType: 'multipart/form-data',
+        ),
+        onSendProgress: (int sent, int total) {
+          final progress = sent / total;
+          print('Upload progress: ${(progress * 100).toStringAsFixed(1)}%');
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return _mapToWorkOrderItem(response.data);
+      }
+
+      // Manejar error del backend
+      final backendMessage =
+          response.data?['detail'] ??
+          response.data?['message'] ??
+          'Error desconocido';
+      throw WorkOrderErrors(message: 'Error al crear ítem: $backendMessage');
+    } on DioException catch (e) {
+      print('DioError: ${e.response?.statusCode} - ${e.message}');
+      if (e.response?.statusCode == 401) {
+        throw WorkOrderErrors(message: 'Token expirado');
+      }
+      final backendMessage =
+          e.response?.data?['detail'] ??
+          e.response?.data?['message'] ??
+          e.message;
+      throw WorkOrderErrors(
+        message: 'Error al crear ítem con fotos: $backendMessage',
+      );
+    } catch (e) {
+      print('Error desconocido: $e');
+      throw WorkOrderErrors(message: 'Error desconocido al crear ítem: $e');
+    }
+  }
+
   @override
   Future<WorkOrderItem> updateItem(int id, WorkOrderItem item) async {
     try {
@@ -103,6 +208,112 @@ class WorkOrderItemDatasourceImpl extends WorkOrderItemDatasource {
       throw WorkOrderErrors(message: 'Error al actualizar ítem: ${e.message}');
     } catch (e) {
       throw WorkOrderErrors(message: 'Error desconocido: $e');
+    }
+  }
+
+  /// Actualiza un ítem con imágenes usando multipart/form-data
+  @override
+  Future<WorkOrderItem> updateItemWithPhotos({
+    required int id,
+    required int workOrderId,
+    required String itemType,
+    required String description,
+    int? quantity,
+    double? unitCost,
+    double? unitPrice,
+    XFile? beforePhoto,
+    XFile? afterPhoto,
+  }) async {
+    try {
+      // Crear FormData para multipart/form-data
+      final formData = FormData();
+
+      // Campos del formulario
+      formData.fields.add(MapEntry('workorderid', workOrderId.toString()));
+      formData.fields.add(MapEntry('itemtype', itemType));
+      formData.fields.add(MapEntry('description', description));
+      if (quantity != null) {
+        formData.fields.add(MapEntry('quantity', quantity.toString()));
+      }
+      if (unitCost != null) {
+        formData.fields.add(MapEntry('unitcost', unitCost.toString()));
+      }
+      if (unitPrice != null) {
+        formData.fields.add(MapEntry('unitprice', unitPrice.toString()));
+      }
+
+      // Archivos (solo si existen)
+      if (beforePhoto != null) {
+        formData.files.add(
+          MapEntry(
+            'beforephoto',
+            await MultipartFile.fromFile(
+              beforePhoto.path,
+              filename: beforePhoto.name,
+            ),
+          ),
+        );
+      }
+      if (afterPhoto != null) {
+        formData.files.add(
+          MapEntry(
+            'afterphoto',
+            await MultipartFile.fromFile(
+              afterPhoto.path,
+              filename: afterPhoto.name,
+            ),
+          ),
+        );
+      }
+
+      print('=== UPDATE ITEM WITH PHOTOS ===');
+      print('URL: ${dio.options.baseUrl}/$id');
+
+      // Enviar solicitud PUT con multipart
+      final response = await dio.put(
+        '/$id',
+        data: formData,
+        options: Options(
+          headers: {'Authorization': 'Bearer ${_getToken()}'},
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return _mapToWorkOrderItem(response.data);
+      }
+
+      // Manejar error del backend
+      final backendMessage =
+          response.data?['detail'] ??
+          response.data?['message'] ??
+          'Error desconocido';
+      throw WorkOrderErrors(
+        message: 'Error al actualizar ítem: $backendMessage',
+      );
+    } on DioException catch (e) {
+      print('DioError: ${e.response?.statusCode} - ${e.message}');
+      if (e.response?.statusCode == 401) {
+        throw WorkOrderErrors(message: 'Token expirado');
+      }
+      if (e.response?.statusCode == 404) {
+        throw WorkOrderErrors(message: 'Ítem no encontrado');
+      }
+      final backendMessage =
+          e.response?.data?['detail'] ??
+          e.response?.data?['message'] ??
+          e.message;
+      throw WorkOrderErrors(
+        message: 'Error al actualizar ítem con fotos: $backendMessage',
+      );
+    } catch (e) {
+      print('Error desconocido: $e');
+      throw WorkOrderErrors(
+        message: 'Error desconocido al actualizar ítem: $e',
+      );
     }
   }
 

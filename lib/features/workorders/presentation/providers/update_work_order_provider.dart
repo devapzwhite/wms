@@ -143,21 +143,23 @@ class UpdateWorkOrderNotifier extends Notifier<UpdateWorkOrderState> {
           .updateWorkOrder(workOrderId, updatedWorkOrder);
       print('WorkOrder actualizado');
 
-      // 2. Sincronizar ítems con el backend
+      // 2. Sincronizar ítems solo si la work order principal se guardó
       final itemsError = await _syncItems();
 
       if (ref.mounted) {
-        // Si hubo error en items pero la OT se guardó, mostrar warning
+        // La work order principal se guardó exitosamente
         if (itemsError != null) {
+          // Items tienen error pero la OT principal se guardó
           state = state.copyWith(
             isLoading: false,
             isSavingItems: false,
             isSuccess: true,
             originalItems: List.from(state.items),
             errorMessage:
-                'OT actualizada. Los ítems no se pudieron guardar (endpoint no disponible en backend).',
+                'OT actualizada. Los ítems no se pudieron guardar completamente.',
           );
         } else {
+          // Todo OK
           state = state.copyWith(
             isLoading: false,
             isSavingItems: false,
@@ -195,74 +197,138 @@ class UpdateWorkOrderNotifier extends Notifier<UpdateWorkOrderState> {
     String? lastError;
     print('Items a procesar: ${currentItems.length}');
 
-    // Crear sets para comparar por ID
-    final currentIds = currentItems
-        .where((item) => item.id != null)
-        .map((item) => item.id)
-        .toSet();
-    final originalIds = originalItems
-        .where((item) => item.id != null)
-        .map((item) => item.id)
-        .toSet();
+    // Crear maps para búsqueda rápida por ID (solo items con ID del backend)
+    final Map<int, WorkOrderItem> originalItemsById = {};
+    for (final item in originalItems) {
+      if (item.id != null) {
+        originalItemsById[item.id!] = item;
+      }
+    }
 
     // Lista actualizada de items (para mantener referencias)
     final List<WorkOrderItem> updatedItems = List.from(currentItems);
 
-    // 1. Ítems a eliminar (están en originales pero no en actuales)
-    final idsToDelete = originalIds.difference(currentIds);
-    for (final id in idsToDelete) {
-      try {
-        await itemRepo.deleteItem(id!);
-      } catch (e) {
-        lastError = 'Error eliminando ítem: $e';
-        print('Error eliminando ítem $id: $e');
+    // 1. Ítems a eliminar:
+    // - Solo items que YA tienen ID del backend Y ya no están en la lista actual
+    for (final originalItem in originalItems) {
+      if (originalItem.id == null) continue; // Skip items nuevos
+
+      // Verificar si este item original todavía existe en currentItems
+      final stillExists = currentItems.any(
+        (item) => item.id == originalItem.id,
+      );
+
+      if (!stillExists) {
+        // El item fue eliminado - intentar borrar del backend
+        try {
+          await itemRepo.deleteItem(originalItem.id!);
+          print('Item ${originalItem.id} eliminado del backend');
+        } catch (e) {
+          lastError = 'Error eliminando ítem: $e';
+          print('Error eliminando ítem ${originalItem.id}: $e');
+        }
       }
     }
 
-    // 2. Ítems a actualizar (están en ambos)
+    // 2. Ítems a actualizar o crear
     for (int i = 0; i < updatedItems.length; i++) {
       final currentItem = updatedItems[i];
-      if (currentItem.id != null && originalIds.contains(currentItem.id)) {
-        // Buscar el ítem original para ver si cambió
-        final originalItem = originalItems.firstWhere(
-          (item) => item.id == currentItem.id,
-        );
+
+      if (currentItem.id != null &&
+          originalItemsById.containsKey(currentItem.id)) {
+        // Este item existe en el backend - verificar si cambió
+        final originalItem = originalItemsById[currentItem.id!];
         if (_itemHasChanged(originalItem, currentItem)) {
           try {
-            final updated = await itemRepo.updateItem(
-              currentItem.id!,
-              currentItem,
+            // Verificar si hay fotos locales nuevas para actualizar
+            final hasNewPhotos =
+                currentItem.beforePhotoFile != null ||
+                currentItem.afterPhotoFile != null;
+
+            WorkOrderItem updated;
+            if (hasNewPhotos) {
+              // Usar método especial para actualizar con fotos
+              updated = await itemRepo.updateItemWithPhotos(
+                id: currentItem.id!,
+                workOrderId: workOrderId,
+                itemType: currentItem.itemType,
+                description: currentItem.description,
+                quantity: currentItem.quantity,
+                unitCost: currentItem.unitCost,
+                unitPrice: currentItem.unitPrice,
+                beforePhoto: currentItem.beforePhotoFile,
+                afterPhoto: currentItem.afterPhotoFile,
+              );
+            } else {
+              // Actualización normal sin fotos
+              updated = await itemRepo.updateItem(currentItem.id!, currentItem);
+            }
+            // Limpiar archivos locales después de subir
+            updatedItems[i] = WorkOrderItem(
+              id: updated.id,
+              workOrderId: updated.workOrderId,
+              itemType: updated.itemType,
+              description: updated.description,
+              quantity: updated.quantity,
+              unitCost: updated.unitCost,
+              unitPrice: updated.unitPrice,
+              beforePhoto: updated.beforePhoto,
+              afterPhoto: updated.afterPhoto,
+              createdAt: updated.createdAt,
             );
-            updatedItems[i] =
-                updated; // Actualizar con la respuesta del servidor
           } catch (e) {
             lastError = 'Error actualizando ítem: $e';
             print('Error actualizando ítem ${currentItem.id}: $e');
           }
         }
-      }
-    }
-
-    // 3. Ítems a crear (son nuevos, no tienen ID)
-    for (int i = 0; i < updatedItems.length; i++) {
-      final newItem = updatedItems[i];
-      if (newItem.id == null) {
+      } else if (currentItem.id == null) {
+        // Este es un item nuevo - crearlo en el backend
         try {
-          // Asignar el workOrderId si no lo tiene
-          final itemToCreate = newItem.workOrderId == null
-              ? WorkOrderItem(
-                  workOrderId: workOrderId,
-                  itemType: newItem.itemType,
-                  description: newItem.description,
-                  quantity: newItem.quantity,
-                  unitCost: newItem.unitCost,
-                  unitPrice: newItem.unitPrice,
-                  beforePhoto: newItem.beforePhoto,
-                  afterPhoto: newItem.afterPhoto,
-                )
-              : newItem;
-          final createdItem = await itemRepo.createItem(itemToCreate);
-          updatedItems[i] = createdItem; // Actualizar con el ID del servidor
+          // Verificar si el ítem tiene fotos locales para subir
+          final hasLocalPhotos =
+              currentItem.beforePhotoFile != null ||
+              currentItem.afterPhotoFile != null;
+
+          WorkOrderItem created;
+          if (hasLocalPhotos) {
+            created = await itemRepo.createItemWithPhotos(
+              workOrderId: workOrderId,
+              itemType: currentItem.itemType,
+              description: currentItem.description,
+              quantity: currentItem.quantity,
+              unitCost: currentItem.unitCost,
+              unitPrice: currentItem.unitPrice,
+              beforePhoto: currentItem.beforePhotoFile,
+              afterPhoto: currentItem.afterPhotoFile,
+            );
+          } else {
+            // Crear ítem sin fotos (método normal)
+            final itemToCreate = WorkOrderItem(
+              workOrderId: workOrderId,
+              itemType: currentItem.itemType,
+              description: currentItem.description,
+              quantity: currentItem.quantity,
+              unitCost: currentItem.unitCost,
+              unitPrice: currentItem.unitPrice,
+              beforePhoto: currentItem.beforePhoto,
+              afterPhoto: currentItem.afterPhoto,
+            );
+            created = await itemRepo.createItem(itemToCreate);
+          }
+
+          // Limpiar archivos locales después de subir
+          updatedItems[i] = WorkOrderItem(
+            id: created.id,
+            workOrderId: created.workOrderId,
+            itemType: created.itemType,
+            description: created.description,
+            quantity: created.quantity,
+            unitCost: created.unitCost,
+            unitPrice: created.unitPrice,
+            beforePhoto: created.beforePhoto,
+            afterPhoto: created.afterPhoto,
+            createdAt: created.createdAt,
+          );
         } catch (e) {
           lastError = 'Error creando ítem: $e';
           print('Error creando ítem: $e');
@@ -270,7 +336,7 @@ class UpdateWorkOrderNotifier extends Notifier<UpdateWorkOrderState> {
       }
     }
 
-    // 4. Actualizar el estado con los items que ahora tienen sus IDs
+    // 4. Actualizar el estado con los items actualizados
     state = state.copyWith(items: updatedItems);
 
     print('=== _syncItems FIN === lastError: $lastError');
@@ -278,12 +344,28 @@ class UpdateWorkOrderNotifier extends Notifier<UpdateWorkOrderState> {
   }
 
   /// Compara dos ítems para ver si hubo cambios
-  bool _itemHasChanged(WorkOrderItem original, WorkOrderItem current) {
-    return original.itemType != current.itemType ||
-        original.description != current.description ||
-        original.quantity != current.quantity ||
-        original.unitCost != current.unitCost ||
-        original.unitPrice != current.unitPrice;
+  bool _itemHasChanged(WorkOrderItem? original, WorkOrderItem current) {
+    if (original == null) return true;
+
+    // Verificar si hay fotos locales nuevas
+    final hasNewBeforePhoto = current.beforePhotoFile != null;
+    final hasNewAfterPhoto = current.afterPhotoFile != null;
+
+    if (hasNewBeforePhoto || hasNewAfterPhoto) return true;
+
+    // Comparar campos, handleando nulls correctamente
+    return _compareValues(original.itemType, current.itemType) ||
+        _compareValues(original.description, current.description) ||
+        _compareValues(original.quantity, current.quantity) ||
+        _compareValues(original.unitCost, current.unitCost) ||
+        _compareValues(original.unitPrice, current.unitPrice);
+  }
+
+  /// Compara dos valores que pueden ser null
+  bool _compareValues<T>(T? a, T? b) {
+    if (a == null && b == null) return false;
+    if (a == null || b == null) return true;
+    return a != b;
   }
 
   void clearError() {
